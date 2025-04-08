@@ -16,6 +16,7 @@ sap.ui.define([
             this.EventBus = this.getOwnerComponent().getEventBus();
             this.EventLoop = [];
             // window.c = this;
+            // eslint-disable-next-line fiori-custom/sap-no-global-define
             window.Debugger = new Debugger({ this: this, visible: false });
         },
 
