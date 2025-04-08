@@ -71,11 +71,11 @@ sap.ui.define([
     /**
      * 发送GET请求
      * @param {string} sPath 路径
-     * @param {RequestParam} mParameters 参数
+     * @param {RequestParam} oParameters 参数
      * @returns {Promise<Array|string>} 请求结果
      */
-    CustomODataModel.prototype.GET = async function (sPath, mParameters) {
-        const oReq = await this._req("GET", sPath, undefined, mParameters);
+    CustomODataModel.prototype.GET = async function (sPath, oParameters) {
+        const oReq = await this._req("GET", sPath, undefined, oParameters);
         if (oReq.body.d) {
             return oReq.body.d.results;
         }
@@ -88,11 +88,11 @@ sap.ui.define([
      * @override
      * @param {string} sPath 请求路径
      * @param {object} oData 请求体
-     * @param {RequestParam} [mParameters] 请求参数
+     * @param {RequestParam} [oParameters] 请求参数
      * @returns {Promise<RequestReturn>} 请求结果
      */
-    CustomODataModel.prototype.POST = async function (sPath, oData, mParameters) {
-        const oReq = await this._req("POST", sPath, oData, mParameters);
+    CustomODataModel.prototype.POST = async function (sPath, oData, oParameters) {
+        const oReq = await this._req("POST", sPath, oData, oParameters);
         return oReq;
     };
 
@@ -101,11 +101,11 @@ sap.ui.define([
      * @public
      * @override
      * @param {string} sPath 请求路径
-     * @param {RequestParam} [mParameters] 请求参数
+     * @param {RequestParam} [oParameters] 请求参数
      * @returns {Promise<RequestReturn>} 请求结果
      */
-    CustomODataModel.prototype.DELETE = async function (sPath, mParameters) {
-        const oReq = await this._req("DELETE", sPath, undefined, mParameters);
+    CustomODataModel.prototype.DELETE = async function (sPath, oParameters) {
+        const oReq = await this._req("DELETE", sPath, undefined, oParameters);
         return oReq;
     };
 
@@ -115,11 +115,11 @@ sap.ui.define([
      * @override
      * @param {string} sPath 请求路径
      * @param {object} oData 请求体
-     * @param {RequestParam} [mParameters] 请求参数
+     * @param {RequestParam} [oParameters] 请求参数
      * @returns {Promise<RequestReturn>} 请求结果
      */
-    CustomODataModel.prototype.PUT = async function (sPath, oData, mParameters) {
-        const oReq = await this._req("PUT", sPath, oData, mParameters);
+    CustomODataModel.prototype.PUT = async function (sPath, oData, oParameters) {
+        const oReq = await this._req("PUT", sPath, oData, oParameters);
         return oReq;
     };
 
@@ -129,11 +129,11 @@ sap.ui.define([
      * @override
      * @param {string} sPath 请求路径
      * @param {object} oData 请求体
-     * @param {RequestParam} [mParameters] 请求参数
+     * @param {RequestParam} [oParameters] 请求参数
      * @returns {Promise<RequestReturn>} 请求结果
      */
-    CustomODataModel.prototype.PATCH = async function (sPath, oData, mParameters) {
-        const oReq = await this._req("PATCH", sPath, oData, mParameters);
+    CustomODataModel.prototype.PATCH = async function (sPath, oData, oParameters) {
+        const oReq = await this._req("PATCH", sPath, oData, oParameters);
         return oReq;
     };
 
@@ -142,18 +142,18 @@ sap.ui.define([
      * @param {string} sMethod 请求方法
      * @param {string} sPath 请求路径
      * @param {object} oData 请求体
-     * @param {RequestParam} mParameters 请求参数 
+     * @param {RequestParam} oParameters 请求参数 
      * @returns {RequestReturn} return
      */
-    CustomODataModel.prototype._req = async function (sMethod, sPath, oData, mParameters) {
+    CustomODataModel.prototype._req = async function (sMethod, sPath, oData, oParameters) {
         // //处理filters
-        // if (mParameters.filters && mParameters.filters.length > 0) {
-        //     var oFilter = FilterProcessor.groupFilters(mParameters.filters)
+        // if (oParameters.filters && oParameters.filters.length > 0) {
+        //     var oFilter = FilterProcessor.groupFilters(oParameters.filters)
         //     var sFilter = ODataUtils.createFilterParams(oFilter);
-        //     mParameters.urlParameters["$filter"] = sFilter.slice(8);
+        //     oParameters.urlParameters["$filter"] = sFilter.slice(8);
         // }
 
-        const oReq = await this._handleRequest(sMethod, sPath, oData, mParameters);
+        const oReq = await this._handleRequest(sMethod, sPath, oData, oParameters);
         const xml = XMLHelper.parse(oReq.body);
         // eslint-disable-next-line fiori-custom/sap-no-hardcoded-url
         const namespace = "http://schemas.microsoft.com/ado/2007/08/dataservices/metadata";

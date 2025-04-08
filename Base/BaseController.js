@@ -1,8 +1,12 @@
 /* eslint-disable max-depth */
 sap.ui.define([
     "./ModelController",
-    "../Unit/ValueHelpDialog"
-], function (Controller, ValueHelpDialog) {
+    "../Unit/ValueHelpDialog",
+    "../Control/Debugger"
+], function (
+    Controller,
+    ValueHelpDialog,
+    Debugger) {
     "use strict";
 
     return Controller.extend("app.controller.Base.BaseController", {
@@ -11,7 +15,8 @@ sap.ui.define([
             this.Router = this.getOwnerComponent().getRouter();
             this.EventBus = this.getOwnerComponent().getEventBus();
             this.EventLoop = [];
-            window.c = this;
+            // window.c = this;
+            window.Debugger = new Debugger({ this: this, visible: false });
         },
 
         /**
