@@ -5,6 +5,11 @@ sap.ui.define([
 ) {
     "use strict";
 
+    /**
+     * @class
+     * @extends sap.ui.model.Model
+     * @alias CustomModel.HttpModel
+     */
     const HttpModel = Model.extend("com.aspn.tools.ybcpi0070.ext.CustomModel.HttpModel", {
         metadata: {
             properties: {
@@ -23,12 +28,39 @@ sap.ui.define([
     });
 
     /**
-     * @typedef {Object} RequestParam
-     * @property {Object<string, any>} [urlParameters] - URL查询参数，键值对会自动编码为URL参数
-     * @property {Object<string, string>} [headers] - HTTP请求头配置
+     * @typedef {Object} RequestParam 请求参数类型
+     * @property {Object<string, any>} [urlParameters] - URL查询参数，键值对自动编码为URL参数
      * @property {Object} [context] - 绑定请求的上下文对象
+     * 
+     * @property {Object<string, string>} [headers] - HTTP请求头配置（Fetch headers）
+     * @property {string} [mode] - 请求模式，默认为`cors`
+     * @property {string} [credentials] - 身份验证模式，默认为`omit`（可选值：omit/same-origin/include）
+     * @property {string} [cache] - 缓存模式，默认为`default`（可选值：no-store/reload/force-cache/network-only）
+     * @property {string} [integrity] - SRI 完整性校验字符串（如 `sha256-...`）
+     * @property {string} [referrer] - 请求来源，默认为`no-referrer`
+     * @property {string} [referrerPolicy] - 请求来源策略，默认为`no-referrer-when-downgrade`
+     * @property {string} [redirect] - 重定向模式，默认为`follow`（可选值：manual/error/follow）
      */
 
+    /**
+     * @typedef {Object} RequestReturn 请求返回值类型
+     * @property {Object<string|object|Array>} [body] - 返回体
+     * @property {Headers} headers - HTTP请求头配置
+     * @property {string} status - HTTP状态码
+     * @property {string} statusText - HTTP状态码文本
+     * @property {string} url - 请求URL
+     * @property {string} type - 请求类型
+     * @property {boolean} redirected - 是否重定向
+     * @property {boolean} ok - 请求是否成功
+     */
+
+    /**
+     * 发送GET请求
+     * @public
+     * @param {string} sPath 请求路径
+     * @param {RequestParam} [mParameters] 请求参数
+     * @returns {Promise<RequestReturn>} 返回值
+     */
     HttpModel.prototype.getProperty = async function (sPath, mParameters) {
         return await this.GET(sPath, mParameters);
     };
@@ -38,7 +70,7 @@ sap.ui.define([
      * @public
      * @param {string} sPath 请求路径
      * @param {RequestParam} [mParameters] 请求参数
-     * @returns {Promise<object>} 返回值
+     * @returns {Promise<RequestReturn>} 返回值
      */
     HttpModel.prototype.GET = async function (sPath, mParameters) {
         return await this._handleRequest("GET", sPath, undefined, mParameters);
@@ -56,25 +88,49 @@ sap.ui.define([
         return await this._handleRequest("POST", sPath, oData, mParameters);
     };
 
+    /**
+     * 发送DELETE请求
+     * @public
+     * @param {string} sPath 请求路径
+     * @param {RequestParam} [mParameters] 请求参数
+     * @returns {Promise<RequestReturn>} 返回值
+     */
     HttpModel.prototype.DELETE = async function (sPath, mParameters) {
         return await this._handleRequest("DELETE", sPath, undefined, mParameters);
     };
 
+    /**
+     * 发送PUT请求
+     * @public
+     * @param {string} sPath 请求路径
+     * @param {object} oData 请求体
+     * @param {RequestParam} [mParameters] 请求参数
+     * @returns {Promise<RequestReturn>} 返回值
+     */
     HttpModel.prototype.PUT = async function (sPath, oData, mParameters) {
         return await this._handleRequest("PUT", sPath, oData, mParameters);
     };
 
+    /**
+     * 发送PATCH请求
+     * @public
+     * @param {string} sPath 请求路径
+     * @param {object} oData 请求体
+     * @param {RequestParam} [mParameters] 请求参数
+     * @returns {Promise<RequestReturn>} 返回值
+     */
     HttpModel.prototype.PATCH = async function (sPath, oData, mParameters) {
         return await this._handleRequest("PATCH", sPath, oData, mParameters);
     };
 
     /**
+     * 处理请求
      * @protected
-     * @param {string} method 
-     * @param {string} sPath 
-     * @param {object} oData 
-     * @param {RequestParam} mParameters 
-     * @returns 
+     * @param {string} method 方法
+     * @param {string} sPath 路径
+     * @param {object} oData 请求体
+     * @param {RequestParam} mParameters 请求参数
+     * @returns {Promise<RequestReturn>} 返回值
      */
     HttpModel.prototype._handleRequest = async function (method, sPath, oData, mParameters) {
         let sUrl = this.vServiceUrl + this.resolve(sPath, mParameters?.context);
@@ -120,6 +176,12 @@ sap.ui.define([
         return this.sendRequest(oRequest);
     };
 
+    /**
+     * 发送请求
+     * @protected
+     * @param {object} oRequest 请求对象
+     * @returns {Promise<RequestReturn>} 返回值
+     */
     HttpModel.prototype.sendRequest = async function (oRequest) {
         try {
             const req = await fetch(oRequest.url, oRequest.param);

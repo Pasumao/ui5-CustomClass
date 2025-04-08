@@ -42,39 +42,14 @@ sap.ui.define([
             }, 0);
         },
 
-        _processObject: function (obj) {
-            const regex = /^\{(\w+)>(.+)\}$/;
-            for (let key in obj) {
-                if (Object.prototype.hasOwnProperty.call(obj, key)) {
-                    const value = obj[key];
-                    if (typeof value === "string") {
-                        const match = value.match(regex);
-                        if (match) {
-                            const modelName = match[1];
-                            const path = match[2];
-                            const model = this._oView.getModel(modelName);
-                            if (!model) {
-                                console.warn(`Model ${modelName} not found.`);
-                                return;
-                            }
-
-                            var fullPath;
-                            if (!path.startsWith("/")) {
-                                let currentControl = this._oControl;
-                                let oContext = currentControl.getBindingContext(modelName);
-                                fullPath = path;
-                                if (oContext) {
-                                    const contextPath = oContext.getPath();
-                                    fullPath = `${contextPath}/${path}`;
-                                }
-                            }
-                            obj[key] = model.getProperty(fullPath);
-                        }
-                    } else if (typeof value === "object" && value !== null) {
-                        this._processObject.call(this, value);
-                    }
-                }
-            }
+        async onMultiInputValueHelpRequest(oEvent) {
+            const oControl = oEvent.getSource();
+            const oProperties = oControl.data("valuehelp");
+            ValueHelpDialog.open(oEvent, JSON.parse(JSON.stringify(oProperties)), this);
+            // eslint-disable-next-line fiori-custom/sap-timeout-usage
+            setTimeout(() => {
+                oControl.setBusy(false);
+            }, 5000);
         },
 
         /**

@@ -11,7 +11,7 @@ sap.ui.define([
             this._registerEvent();
             this._onInit();
 
-            this._odata();
+            this._odata(); //odata的batch方法封装
         },
 
         /**
@@ -35,7 +35,7 @@ sap.ui.define([
         _onInit() { },       //其他初始化设置
 
         /**
-         * Get Model Data
+         * 获取model
          * @param {string|undefined} [sModelName] model name
          * @returns { sap.ui.model.Model|undefined } model data
          */
@@ -49,7 +49,7 @@ sap.ui.define([
         },
 
         /**
-         * 
+         * 设置model
          * @param {string|undefined} [sModelName] model name
          * @param {sap.ui.model.Model|object|Array} [oModel] model object or js object
          * @param {boolean} [isGlobal] is global model
@@ -70,7 +70,7 @@ sap.ui.define([
         },
 
         /**
-         * 
+         * 获取model的属性
          * @param {string|undefined} [sModelName] model name
          * @param {string} sPropertyName property name
          * @returns {any} any
@@ -81,7 +81,7 @@ sap.ui.define([
         },
 
         /**
-         * 
+         * 设置model的属性
          * @param {string|undefined} [sModelName] model name
          * @param {string} sPropertyPath property Path
          * @param {any} value value
@@ -130,7 +130,7 @@ sap.ui.define([
         },
 
         /**
-         * 
+         * 获取model的值
          * @param {string} [sModelName] model name
          * @param {string} [sPath] path
          * @param {sap.ui.model.Filter[]} [aFilters] filters
@@ -193,7 +193,7 @@ sap.ui.define([
         },
 
         /**
-         * 
+         * 设置model的值，只支持jsonmodel
          * @param {string} oModelName model name
          * @param {any} oData omodeldata
          * @returns {sap.ui.core.mvc.Controller} this
@@ -208,6 +208,9 @@ sap.ui.define([
             return this;
         },
 
+        /**
+         * 对odata的封装，建议使用batch时使用，如果不使用batch，请使用CustomODataModel
+         */
         _odata: function () {
 
             this.odata4 = {

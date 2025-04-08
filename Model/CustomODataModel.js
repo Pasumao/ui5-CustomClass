@@ -12,9 +12,8 @@ sap.ui.define([
     "use strict";
 
     /**
-     * @namespace Model
      * @class CustomODataModel
-     * @extends HttpModel
+     * @extends CustomModel.HttpModel
      */
     const CustomODataModel = HttpModel.extend("com.aspn.tools.ybcpi0040.controller.Model.CustomODataModel", {
         metadata: {
@@ -42,7 +41,6 @@ sap.ui.define([
     /**
      * @typedef {Object} RequestParam 请求参数类型
      * @property {Object<string, any>} [urlParameters] - URL查询参数，键值对自动编码为URL参数
-     * @property {Array} [filters] - 查询过滤器(目前不支持)
      * @property {Object} [context] - 绑定请求的上下文对象
      * 
      * @property {Object<string, string>} [headers] - HTTP请求头配置（Fetch headers）
