@@ -1,7 +1,8 @@
 /* eslint-disable max-depth */
 sap.ui.define([
-    "./ModelController"
-], function (Controller) {
+    "./ModelController",
+    "../Unit/ValueHelpDialog"
+], function (Controller, ValueHelpDialog) {
     "use strict";
 
     return Controller.extend("app.controller.Base.BaseController", {
@@ -42,25 +43,57 @@ sap.ui.define([
             }, 0);
         },
 
+        /**
+         * valuehelp的调用方法，如果要处理数据可以照着写
+         * @param {sap.ui.base.Event} oEvent oEvent
+         */
         async onMultiInputValueHelpRequest(oEvent) {
             const oControl = oEvent.getSource();
             const oProperties = oControl.data("valuehelp");
             ValueHelpDialog.open(oEvent, JSON.parse(JSON.stringify(oProperties)), this);
-            // eslint-disable-next-line fiori-custom/sap-timeout-usage
             setTimeout(() => {
                 oControl.setBusy(false);
             }, 5000);
         },
 
         /**
-         * @param {sap.ui.base.Event} oEvent
+         * 自动调整列宽的方法，主要增加了对input类的支持，原生方法不支持input类的自动调整宽度
+         * @public
+         * @param {sap.ui.table.Table} oTable table控件实例
+         */
+        __autoWidthTable(oTable) {
+            const aColumns = oTable.getColumns();
+
+            aColumns.forEach(column => {
+                column.autoResize();
+                let sWight = column.getWidth();
+                if (!column.getTemplate().getItems) {
+                    return;
+                }
+                let aTemplates = column.getTemplate().getItems();
+                let oTemplate = aTemplates[1];
+
+                sWight = sWight.split("px")[0];
+                sWight = Number(sWight);
+                sWight += 20;
+
+                if (oTemplate.mAggregations._endIcon) { sWight += 32; }
+                if (sWight > 300) { sWight = 300; }
+
+                sWight = String(sWight) + "px";
+                column.setWidth(sWight);
+            });
+        },
+
+        /**
+         * @param {sap.ui.base.Event} oEvent oEvent
          */
         smartvaluehelp(oEvent) {
             const Control = oEvent.getSource();
 
             const oData = Control.data("valuehelp");
 
-            this._processObject(oData);
+            this._processObject(oData, oEvent);
 
             const modelname = oData?.modelname;
             const modelpath = oData?.modelpath;
@@ -140,36 +173,6 @@ sap.ui.define([
                 uniqueKeys.add(value);
                 return true;
             });
-        },
-
-        smarttablesort(oEvent) {
-            var oControl = oEvent.getSource();
-            var sortlist = oControl.data("sortlist").sortlist;
-            var oParent = oControl.getParent();
-
-            while (oParent && !(oParent instanceof sap.m.Table)) {
-                oParent = oParent.getParent();
-            }
-
-            var Dialog = new sap.m.ViewSettingsDialog({
-                title: "Sort Dialog",
-                sortItems: sortlist.map(item => {
-                    return new sap.m.ViewSettingsItem({
-                        key: item.key,
-                        text: item.text,
-                        selected: item?.selected
-                    })
-                }),
-                confirm: (oEvent) => {
-                    var mParams = oEvent.getParameters();
-                    var oBinding = oParent.getBinding("items");
-                    var sPath = mParams.sortItem.getKey()
-                    var bDescending = mParams.sortDescending;
-                    oBinding.sort([new sap.ui.model.Sorter(sPath, bDescending)]);
-                }
-            });
-
-            Dialog.open();
         },
 
         Validator(keyfield) {

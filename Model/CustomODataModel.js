@@ -13,9 +13,9 @@ sap.ui.define([
 
     /**
      * @class CustomODataModel
-     * @extends CustomModel.HttpModel
+     * @extends HttpModel
      */
-    const CustomODataModel = HttpModel.extend("com.aspn.tools.ybcpi0040.controller.Model.CustomODataModel", {
+    const CustomODataModel = HttpModel.extend("Model.CustomODataModel", {
         metadata: {
         },
 
@@ -28,14 +28,14 @@ sap.ui.define([
     /**
      * 刷新CSRF令牌
      * @private
-     * @returns {Promise<void>}
+     * @returns {Promise<void>} 无返回值
      */
     CustomODataModel.prototype._refreshToken = async function () {
         await this._req("HEAD", "/", {}, {
             headers: {
                 "x-csrf-token": "Fetch"
             }
-        })
+        });
     };
 
     /**
@@ -70,8 +70,8 @@ sap.ui.define([
 
     /**
      * 发送GET请求
-     * @param {string} sPath 
-     * @param {RequestParam} mParameters 
+     * @param {string} sPath 路径
+     * @param {RequestParam} mParameters 参数
      * @returns {Promise<Array|string>} 请求结果
      */
     CustomODataModel.prototype.GET = async function (sPath, mParameters) {
@@ -139,10 +139,10 @@ sap.ui.define([
 
     /**
      * 对_handleRequest的封装，主要处理了odata服务的报错解析
-     * @param {string} sMethod 
-     * @param {string} sPath 
-     * @param {object} oData 
-     * @param {RequestParam} mParameters 
+     * @param {string} sMethod 请求方法
+     * @param {string} sPath 请求路径
+     * @param {object} oData 请求体
+     * @param {RequestParam} mParameters 请求参数 
      * @returns {RequestReturn} return
      */
     CustomODataModel.prototype._req = async function (sMethod, sPath, oData, mParameters) {
@@ -155,23 +155,24 @@ sap.ui.define([
 
         const oReq = await this._handleRequest(sMethod, sPath, oData, mParameters);
         const xml = XMLHelper.parse(oReq.body);
+        // eslint-disable-next-line fiori-custom/sap-no-hardcoded-url
         const namespace = "http://schemas.microsoft.com/ado/2007/08/dataservices/metadata";
         // 使用命名空间查询错误节点
-        const errorNodes = xml.getElementsByTagNameNS(namespace, 'error');
+        const errorNodes = xml.getElementsByTagNameNS(namespace, "error");
         if (errorNodes.length > 0) {
             // 获取错误节点
-            const errorNode = xml.getElementsByTagNameNS(namespace, 'error')[0];
+            const errorNode = xml.getElementsByTagNameNS(namespace, "error")[0];
 
             // 获取子元素内容（注意也需要处理命名空间）
-            const codeNode = errorNode.getElementsByTagNameNS(namespace, 'code')[0];
-            const messageNode = errorNode.getElementsByTagNameNS(namespace, 'message')[0];
+            const codeNode = errorNode.getElementsByTagNameNS(namespace, "code")[0];
+            const messageNode = errorNode.getElementsByTagNameNS(namespace, "message")[0];
 
             oReq.error = {
-                code: codeNode ? codeNode.textContent : '',
-                message: messageNode ? messageNode.textContent : ''
-            }
+                code: codeNode ? codeNode.textContent : "",
+                message: messageNode ? messageNode.textContent : ""
+            };
         }
-        return oReq
+        return oReq;
     };
 
     return CustomODataModel;

@@ -1,3 +1,4 @@
+/* eslint-disable max-depth */
 /* eslint-disable no-param-reassign */
 sap.ui.define([
     "sap/ui/core/mvc/Controller"
@@ -110,10 +111,10 @@ sap.ui.define([
                             for (let key in bindingInfos) {
                                 if (!Reflect.has(bindingInfos, key)) { continue; }
                                 var oValue = bindingInfos[key];
-                                var bindingInfo = oValue.parts.find((part) => part.path === sPropertyPath.split("/")[2]);
+                                var bindingInfo3 = oValue.parts.find((part) => part.path === sPropertyPath.split("/")[2]);
 
-                                if (bindingInfo) {
-                                    return oValue.binding.oContext.sPath + "/" + bindingInfo.path === sPropertyPath;
+                                if (bindingInfo3) {
+                                    return oValue.binding.oContext.sPath + "/" + bindingInfo3.path === sPropertyPath;
                                 }
                             }
                         }
@@ -170,12 +171,13 @@ sap.ui.define([
                 };
                 return await fGetODatav2();
             } else if (oModel.isA("sap.ui.model.odata.v4.ODataModel")) {
+                /**@type {sap.ui.model.odata.v4.ODataListBinding} */
                 var oContext = oModel.bindList(sPath, undefined, undefined, aFilters);
                 const fGetODatav4 = (aData = [], iSkip = 0) => {
                     return new Promise((resolve, reject) => {
                         oContext.requestContexts(iSkip, 100).then(function (aContexts) {
-                            aContexts.forEach(function (oContext) {
-                                aData.push(oContext.getObject());
+                            aContexts.forEach(function (context) {
+                                aData.push(context.getObject());
                             });
                             if (aContexts.length === 100) {
                                 iSkip += 100;
@@ -224,17 +226,18 @@ sap.ui.define([
                  */
                 GET: function (sModelName, sPath, mParameter, aFilters) {
                     const model = this.getmodel(sModelName);
+                    /**@type {sap.ui.model.odata.v4.ODataListBinding} */
                     var oContext = model.bindList(sPath, undefined, undefined, aFilters);
                     return new Promise((resolve, reject) => {
                         oContext.requestContexts().then(function (aContexts) {
                             var aData = [];
-                            aContexts.forEach(function (oContext) {
-                                aData.push(oContext.getObject());
+                            aContexts.forEach(function (context) {
+                                aData.push(context.getObject());
                             });
                             resolve(aData);
                         });
                     });
-                }.bind(this),
+                }.bind(this)
             };
 
             this.odata2 = {
@@ -362,7 +365,7 @@ sap.ui.define([
                             })
                         });
                     });
-                }.bind(this),
+                }.bind(this)
             };
         },
 
@@ -371,9 +374,10 @@ sap.ui.define([
          * 这个方法会改变原对象，请先拷贝
          * 它可以解析类似{model>/path}这种字符串，并换上对应的值
          * 如果在xmlview中也可以解析带context的格式比如{model>path}
-         * @param {object} obj 
-         * @param {sap.ui.base.Event} oEvent 
-         * @returns void
+         * @protected
+         * @param {object} obj 数据
+         * @param {sap.ui.base.Event} oEvent oEvent
+         * @returns {void} 
          */
         _processObject(obj, oEvent) {
             const regex = /^\{(\w+)>(.+)\}$/;
@@ -393,6 +397,7 @@ sap.ui.define([
 
                             var fullPath;
                             if (!path.startsWith("/")) {
+                                /**@type {sap.ui.core.Control} */
                                 let currentControl = oEvent.getSource();
                                 let oContext = currentControl.getBindingContext(modelName);
                                 fullPath = path;

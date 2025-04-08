@@ -8,7 +8,7 @@ sap.ui.define([
     /**
      * @class
      * @extends sap.ui.model.Model
-     * @alias CustomModel.HttpModel
+     * @namespace CustomModel.HttpModel
      */
     const HttpModel = Model.extend("com.aspn.tools.ybcpi0070.ext.CustomModel.HttpModel", {
         metadata: {
@@ -189,7 +189,7 @@ sap.ui.define([
 
             if (!req.ok) {
                 //throw new Error(`HTTP error! Status: ${req.status}, Data: ${data}`);
-                console.log(`HTTP error! Status: ${req.status}, Data: ${data}`)
+                console.log(`HTTP error! Status: ${req.status}, Data: ${data}`);
             }
 
             return {
