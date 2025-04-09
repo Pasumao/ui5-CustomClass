@@ -26,7 +26,7 @@ sap.ui.define([
                     script.onerror = reject;
                     document.head.appendChild(script);
                 });
-            })()
+            })();
 
             /**
              * 需要在oninit时重写SmartTable的方法，

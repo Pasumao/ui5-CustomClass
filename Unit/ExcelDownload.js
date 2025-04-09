@@ -1,9 +1,9 @@
 sap.ui.define([
-	"sap/ui/base/Object"
-], function(
-	Object
+    "sap/ui/base/Object"
+], function (
+    Object
 ) {
-	"use strict";
+    "use strict";
 
     /**
      * This class is used to download data as an Excel file using the xlsx library.
@@ -13,13 +13,13 @@ sap.ui.define([
      * @extends sap.ui.base.Object
      * @public
      */
-	var ExcelDownload = Object.extend("app.controller.func.ExcelDownload", {
+    var ExcelDownload = Object.extend("Unit.ExcelDownload", {
 
         metadata: {
             interfaces: ["Download"]
         },
 
-        constructor: function(oTable,oProperties) {
+        constructor: function (oTable, oProperties) {
             this._oTable = oTable;
             var oBinding = oTable.getBinding("rows");
             this.aRows = oBinding.getContexts().map(function (context) {
@@ -27,17 +27,16 @@ sap.ui.define([
             });
             this.aColumns = oTable.getColumns();
             this.aHeader = this.aColumns.map(function (column) {
-                if (!oProperties.filters.includes(_getkey(column))) return column.getLabel().getText();
+                if (!oProperties.filters.includes(_getkey(column))) { return column.getLabel().getText(); }
             });
-            console.log(this.aHeader,this.aColumns, this.aRows);
-        },
-	});
+        }
+    });
 
     function formatDate(date) {
         const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+
         return `${year}.${month}.${day}`;
     }
 
@@ -51,25 +50,26 @@ sap.ui.define([
     }
 
     function _getkey(column) {
-        return column.getSortProperty() || column.data("key")
+        return column.getSortProperty() || column.data("key");
     }
 
-    ExcelDownload.Download = async function(oProperties) {
+    ExcelDownload.Download = async function (oProperties) {
         const oTable = oProperties.control
-        if (!oTable.isA("sap.ui.table.Table")) return
-        var oExcelDownload = new ExcelDownload(oTable,oProperties);
-        
+        if (!oTable.isA("sap.ui.table.Table")) { return; }
+        var oExcelDownload = new ExcelDownload(oTable, oProperties);
+
         var Script = await new Promise((resolve, reject) => {
             sap.ui.require(["app/controller/func/Loader"], resolve, reject);
         });
-        await Script.load("https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js")
+        // eslint-disable-next-line fiori-custom/sap-no-hardcoded-url
+        await Script.load("https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js");
 
         var aData = [];
         var filteredHeaders = oExcelDownload.aHeader.filter(function (header) {
             return !oProperties.filters.includes(header);
         });
         aData.push(filteredHeaders);  // Add filtered headers
-        
+
         oExcelDownload.aRows.forEach(function (row) {
             // Filter row data based on aFilter
             var rowData = oExcelDownload.aColumns
@@ -81,11 +81,11 @@ sap.ui.define([
                     var cell = {};
 
                     // 如果是日期类型，则设置单元格的日期格式
-                    
-                    if (_getkey(column).includes('Date')) {
+
+                    if (_getkey(column).includes("Date")) {
                         const date = new Date(cellValue);
-                        cellValue = formatDate(date)
-                        cell.z = 'yyyy.MM.dd';  // 设置单元格日期格式
+                        cellValue = formatDate(date);
+                        cell.z = "yyyy.MM.dd";  // 设置单元格日期格式
 
                     }
 
@@ -100,24 +100,24 @@ sap.ui.define([
         var ws = XLSX.utils.aoa_to_sheet(aData);
         var wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
-        var data = XLSX.write(wb, {type: 'binary', bookType: 'xlsx'});
+        var data = XLSX.write(wb, { type: "binary", bookType: "xlsx" });
 
         const fileHandle = await window.showSaveFilePicker({
-            suggestedName: oProperties.fileName + '.xlsx',
+            suggestedName: oProperties.fileName + ".xlsx",
             types: [{
-                description: 'Excel Files',
-                accept: {'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx']},
+                description: "Excel Files",
+                accept: { "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [".xlsx"] },
             }]
-        })
+        });
         console.log(fileHandle);
-        
+
         const writable = await fileHandle.createWritable();
 
         await writable.write(s2ab(data));
         await writable.close();
 
-        sap.m.MessageToast.show('Download complete.');
-    }
-    
+        sap.m.MessageToast.show("Download complete.");
+    };
+
     return ExcelDownload;
 });
