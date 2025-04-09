@@ -92,95 +92,11 @@ sap.ui.define([
         },
 
         /**
-         * @param {sap.ui.base.Event} oEvent oEvent
+         * multiinput的addValidator方法用
+         * 函数添加在将任何新令牌添加到 tokens 聚合之前调用的验证回调。
+         * @param {string} keyfield 主要是配合valuehelpdialog使用，如果不使用valuehelpdialog可以为空字符串
+         * @returns {function} 返回一个函数
          */
-        smartvaluehelp(oEvent) {
-            const Control = oEvent.getSource();
-
-            const oData = Control.data("valuehelp");
-
-            this._processObject(oData, oEvent);
-
-            const modelname = oData?.modelname;
-            const modelpath = oData?.modelpath;
-            const filters = oData?.filterlist || [];
-            this.fieldlist = oData?.dialog;
-
-            this.getmodeldata(modelname, modelpath, filters.map(f => new sap.ui.model.Filter(f.fieldname, f.operator, f.value))).then((aData) => {
-                if (!aData || !Array.isArray(aData)) {
-                    console.error("[ERROR] No data retrieved or data format is incorrect.");
-                    return;
-                }
-                // 对获取的数据进行去重处理
-                var aUniqueData = this.removeDuplicates(aData, this.fieldlist.title);
-
-                // 创建一个临时模型来保存去重后的数据
-                var oUniqueModel = new sap.ui.model.json.JSONModel();
-                oUniqueModel.setData({ items: aUniqueData });
-
-                var Dialog = new sap.m.SelectDialog({
-                    title: "SelectDialog",
-                    contentHeight: "40%",
-                    items: {
-                        path: "/items",
-                        //sorter: new sap.ui.model.Sorter(keyfiled, false),
-                        template: new sap.m.StandardListItem({
-                            title: "{" + this.fieldlist.title + "}",
-                            description: this.fieldlist.description ? "{" + this.fieldlist.description + "}" : null,
-                            type: "Active"
-                        })
-                    },
-                    liveChange: (oEvent) => {
-                        var sValue = oEvent.getParameter("value");
-                        var oFilter = sValue ?
-                            new sap.ui.model.Filter(this.fieldlist.title, sap.ui.model.FilterOperator.Contains, sValue) :
-                            [];
-                        oEvent.getSource().getBinding("items").filter(oFilter);
-                    },
-                    confirm: (oEvent) => {
-                        var oModel = this.getmodel(modelname);
-                        var oSelectedItem = oEvent.getParameter("selectedItem");
-                        if (this.keymodel && this.keyfield) {
-                            oModel.setProperty(this.keymodel + "/" + this.keyfield, oSelectedItem.getTitle());
-                        } else {
-                            Control.setValue(oSelectedItem.getTitle());
-                        }
-                        Control.fireChange();
-                    }
-                });
-
-                var sResponsiveStyleClasses = "sapUiResponsivePadding--header sapUiResponsivePadding--subHeader sapUiResponsivePadding--content sapUiResponsivePadding--footer";
-                Dialog.toggleStyleClass(sResponsiveStyleClasses, true);
-                Dialog.setResizable(true);
-                Dialog.setDraggable(true);
-
-                Dialog.setModel(oUniqueModel);
-
-                Dialog.open();
-            }).catch((oError) => {
-                console.error("Error retrieving data for value help:", oError);
-            });
-        },
-
-        /**
-         * 去重
-         * @param {Array} dataArray 模型名称
-         * @param {string} key 模型路径
-         * @returns {Array} 去重后的数组
-         */
-        removeDuplicates: function (dataArray, key) {
-            if (!key) { return dataArray; } // 如果没有key，不进行去重
-            const uniqueKeys = new Set();
-            return dataArray.filter(item => {
-                const value = item[key];
-                if (value === null || uniqueKeys.has(value)) {
-                    return false;
-                }
-                uniqueKeys.add(value);
-                return true;
-            });
-        },
-
         Validator(keyfield) {
             return (oArgs) => {
                 let str = oArgs.text;
@@ -274,6 +190,7 @@ sap.ui.define([
         },
 
         /**
+         * 弹窗获取输入的值
          * <ul>
          * <li>{</li>
          * <li><pre>  title: String,</pre></li>
@@ -288,11 +205,11 @@ sap.ui.define([
          * @param {object} aFiledCatalog 设置参数
          * @param {string} aFiledCatalog.title 设置标题
          * @param {object[]} aFiledCatalog.fieldlist 设置字段列表
-         * @param {string} aFiledCatalog.fieldlist.key 设置字段名称
+         * @param {string} aFiledCatalog.fieldlist.key 设置字段在返回值的时候的key
          * @param {string} aFiledCatalog.fieldlist.label 设置字段显示名称
-         * @param {boolean} aFiledCatalog.fieldlist.isKey 设置字段显示名称
+         * @param {boolean} aFiledCatalog.fieldlist.isKey 设置为必须输入
          * @param {sap.m.InputBase} aFiledCatalog.fieldlist.control 设置字段控件
-         * @returns {object} 返回输入的参数
+         * @returns {Promise<Object<string,any>>} 返回输入的参数
          */
         getvaluedialog(aFiledCatalog) {
             var oView = this.getView();
@@ -363,10 +280,11 @@ sap.ui.define([
         },
 
         /**
+         * 弹窗确认与否
          * @param {object} oProperty oProperty
-         * @param {string} oProperty.title title
-         * @param {string} oProperty.text content text
-         * @returns {Promise} oDialog
+         * @param {string} oProperty.title 标题
+         * @param {string} oProperty.text 中间内容
+         * @returns {Promise<Boolean>} 返回是，否
          */
         OKDialog(oProperty) {
             return new Promise((resolve, reject) => {
@@ -379,14 +297,14 @@ sap.ui.define([
                         type: sap.m.ButtonType.Emphasized,
                         press: () => {
                             oDialog.close();
-                            resolve("OK");
+                            resolve(true);
                         }
                     }),
                     endButton: new sap.m.Button({
                         text: "cancel",
                         press: () => {
                             oDialog.close();
-                            reject("CANCEL");
+                            reject(false);
                         }
                     }),
                     content: [
@@ -421,6 +339,11 @@ sap.ui.define([
             });
         },
 
+        /**
+         * 异步加载一个类并返回
+         * @param {string} vClass 类名,要么使用sap.m.Input这种写法要么就直接写相对位置
+         * @returns {Promise<class>} 返回类
+         */
         import(vClass) {
             var sClass = vClass;
             if (vClass.includes(".")) {
