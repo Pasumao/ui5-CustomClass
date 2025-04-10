@@ -203,7 +203,6 @@ sap.ui.define([
                 this._oTable = this._getTable(oTableData);
 
                 this._oDialog.setTable(this._oTable);
-
                 const valueHelpMethod = this._mode === "single"
                     ? this._singleValueHelp
                     : this._multiValueHelp;
@@ -355,6 +354,16 @@ sap.ui.define([
             oTable.setSelectionBehavior(SelectionBehavior.RowOnly);
         }
 
+        const ovh = this._oControl.data("vh");
+        if (ovh) {
+            this.setTableSelected = () => {
+                const aDatas = this._oDialog.getModel().getProperty("/tabledata");
+                const nIndex = aDatas.findIndex(row => {
+                    return Object.entries(ovh).every(([key, value]) => typeof value === "object" ? true : row[key] === value);
+                });
+                this._oTable.setSelectedIndex(nIndex);
+            };
+        }
         const sValue = this._oControl.getValue();
 
         if (sValue) {
@@ -393,6 +402,22 @@ sap.ui.define([
                 ]);
             });
         }
+
+        // const ovh = this._oControl.data("vh");
+        // if (ovh) {
+        //     this.setTableSelected = () => {
+        //         const aDatas = this._oDialog.getModel().getProperty("/tabledata");
+        //         const aIndices = [];
+        //         aDatas.forEach((row, index) => {
+        //             if (ovh.some(item => {
+        //                 return Object.entries(item).every(([key, value]) => typeof value === "object" ? true : row[key] === value);
+        //             }) === true) {
+        //                 aIndices.push(index);
+        //             }
+        //         });
+        //         this._oTable.setSelectedIndex(aIndices);
+        //     };
+        // }
 
         this._oDialog.setTokens(this._oControl.getTokens());
     };
@@ -498,6 +523,7 @@ sap.ui.define([
         oValueHelpDialog.initDialog().then(function () {
             oValueHelpDialog._oControl.setBusy(false);
         }).finally(function () {
+            if (oValueHelpDialog.setTableSelected) { oValueHelpDialog.setTableSelected(); }
             oValueHelpDialog.openDialog();
         });
     };
