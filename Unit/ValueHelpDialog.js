@@ -82,9 +82,7 @@ sap.ui.define([
             /** @type {sap.m.MultiInput|sap.m.Input} */
             this._oControl = this._oEvent.getSource();
             const sControlType = this._oControl.getMetadata().getName();
-            if (sControlType === "sap.m.MultiInput") {
-                this._mode = "multi";
-            } else if (sControlType === "sap.m.Input") {
+            if (sControlType === "sap.m.Input") {
                 this._mode = "single";
             }
             this._oController = oController;
@@ -132,6 +130,7 @@ sap.ui.define([
             this._oProperties.table.selectionBehavior = SelectionBehavior.RowOnly;
             this._oProperties.supportMultiselect = true;
             this._oProperties.maxConditions = 1;
+            this._mode = "single";
         }
         // 检测是否有range,如果supportRanges是true则初始化range
         if (this._oProperties.supportRanges && !this._oProperties.range) {
@@ -201,14 +200,14 @@ sap.ui.define([
             }
 
             if (!this._oProperties.supportRangesOnly) {
-                const oTable = this._getTable(oTableData);
+                this._oTable = this._getTable(oTableData);
 
-                this._oDialog.setTable(oTable);
+                this._oDialog.setTable(this._oTable);
 
                 const valueHelpMethod = this._mode === "single"
                     ? this._singleValueHelp
                     : this._multiValueHelp;
-                valueHelpMethod.call(this, oTable);
+                valueHelpMethod.call(this, this._oTable);
 
                 this._oDialog.setFilterBar(new FilterBar({
                     ...this._oProperties.filterBar,
@@ -405,6 +404,12 @@ sap.ui.define([
     ValueHelpDialog.prototype._singleok = function (oEvent) {
         const aTokens = oEvent.getParameter("tokens");
 
+        const nSelected = this._oTable.getSelectedIndices();
+        if (nSelected.length !== 0) {
+            const oRow = this._oDialog.getModel().getProperty("/tabledata/" + nSelected[0]);
+            this._oControl.data("vh", oRow);
+        }
+
         if (aTokens.length === 0) {
             this._oControl.setValue("");
         } else {
@@ -421,6 +426,10 @@ sap.ui.define([
 
     ValueHelpDialog.prototype._multiok = function (oEvent) {
         var aTokens = oEvent.getParameter("tokens");
+
+        const aSelecteds = this._oTable.getSelectedIndices();
+        const aSelectedRows = aSelecteds.map(i => this._oDialog.getModel().getProperty("/tabledata/" + i));
+        this._oControl.data("vh", aSelectedRows);
 
         this._oControl.setTokens(aTokens.map(token => {
             if (token.data("range")) {

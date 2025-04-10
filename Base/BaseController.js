@@ -202,28 +202,28 @@ sap.ui.define([
          * <li>  }]</li>
          * <li>}</li>
          * </ul>
-         * @param {object} aFiledCatalog 设置参数
-         * @param {string} aFiledCatalog.title 设置标题
-         * @param {object[]} aFiledCatalog.fieldlist 设置字段列表
-         * @param {string} aFiledCatalog.fieldlist.key 设置字段在返回值的时候的key
-         * @param {string} aFiledCatalog.fieldlist.label 设置字段显示名称
-         * @param {boolean} aFiledCatalog.fieldlist.isKey 设置为必须输入
-         * @param {sap.m.InputBase} aFiledCatalog.fieldlist.control 设置字段控件
+         * @param {object} oFiledCatalog 设置参数
+         * @param {string} oFiledCatalog.title 设置标题
+         * @param {object[]} oFiledCatalog.fieldlist 设置字段列表
+         * @param {string} oFiledCatalog.fieldlist.key 设置字段在返回值的时候的key
+         * @param {string} oFiledCatalog.fieldlist.label 设置字段显示名称
+         * @param {boolean} oFiledCatalog.fieldlist.isKey 设置为必须输入
+         * @param {sap.m.InputBase} oFiledCatalog.fieldlist.control 设置字段控件
          * @returns {Promise<Object<string,any>>} 返回输入的参数
          */
-        getvaluedialog(aFiledCatalog) {
+        getvaluedialog(oFiledCatalog) {
             var oView = this.getView();
 
             return new Promise((resolve, reject) => {
                 const oDialog = new sap.m.Dialog({
-                    title: aFiledCatalog.title,
+                    title: oFiledCatalog.title,
                     draggable: true,
                     resizable: true,
                     beginButton: new sap.m.Button({
                         text: "OK",
                         type: sap.m.ButtonType.Emphasized,
                         press: async () => {
-                            aFiledCatalog.fieldlist.forEach(field => {
+                            oFiledCatalog.fieldlist.forEach(field => {
                                 var sValue = field.control.getValue();
 
                                 if (field.isKey) {
@@ -239,11 +239,11 @@ sap.ui.define([
                             });
 
                             var oData = {};
-                            aFiledCatalog.fieldlist.forEach(field => {
+                            oFiledCatalog.fieldlist.forEach(field => {
                                 oData[field.key] = field.control.getValue().trim();
                             });
 
-                            if (aFiledCatalog.fieldlist.some(field => field.isKey && !field.control.getValue())) {
+                            if (oFiledCatalog.fieldlist.some(field => field.isKey && !field.control.getValue())) {
                                 return;
                             }
 
@@ -258,7 +258,7 @@ sap.ui.define([
                             reject();
                         }
                     }),
-                    content: aFiledCatalog.fieldlist.map(field => {
+                    content: oFiledCatalog.fieldlist.map(field => {
                         return new sap.m.HBox({
                             alignContent: "Center",
                             alignItems: "Center",
