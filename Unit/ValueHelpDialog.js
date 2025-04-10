@@ -354,16 +354,16 @@ sap.ui.define([
             oTable.setSelectionBehavior(SelectionBehavior.RowOnly);
         }
 
-        const ovh = this._oControl.data("vh");
-        if (ovh) {
-            this.setTableSelected = () => {
-                const aDatas = this._oDialog.getModel().getProperty("/tabledata");
-                const nIndex = aDatas.findIndex(row => {
-                    return Object.entries(ovh).every(([key, value]) => typeof value === "object" ? true : row[key] === value);
-                });
-                this._oTable.setSelectedIndex(nIndex);
-            };
-        }
+        // const ovh = this._oControl.data("vh");
+        // if (ovh) {
+        //     this.setTableSelected = () => {
+        //         const aDatas = this._oDialog.getModel().getProperty("/tabledata");
+        //         const nIndex = aDatas.findIndex(row => {
+        //             return Object.entries(ovh).every(([key, value]) => typeof value === "object" ? true : row[key] === value);
+        //         });
+        //         this._oTable.setSelectedIndex(nIndex);
+        //     };
+        // }
         const sValue = this._oControl.getValue();
 
         if (sValue) {
@@ -516,6 +516,12 @@ sap.ui.define([
      * @param {sap.ui.core.mvc.Controller} oController controller
      */
     ValueHelpDialog.open = function (oEvent, oProperties, oController) {
+        const oControl = oEvent.getSource();
+        const oVH = oControl.data("oVH");
+        if (oVH) {
+            oVH.openDialog();
+            return;
+        }
         var oValueHelpDialog = new ValueHelpDialog(oEvent, oController);
         oValueHelpDialog._oControl.setBusy(true);
         oController._processObject(oProperties, oEvent);
@@ -523,7 +529,8 @@ sap.ui.define([
         oValueHelpDialog.initDialog().then(function () {
             oValueHelpDialog._oControl.setBusy(false);
         }).finally(function () {
-            if (oValueHelpDialog.setTableSelected) { oValueHelpDialog.setTableSelected(); }
+            // if (oValueHelpDialog.setTableSelected) { oValueHelpDialog.setTableSelected(); }
+            oControl.data("oVH", oValueHelpDialog);
             oValueHelpDialog.openDialog();
         });
     };
