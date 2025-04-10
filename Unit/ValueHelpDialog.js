@@ -39,7 +39,9 @@ sap.ui.define([
     const SelectionMode = tableLibrary.SelectionMode;
 
     /**
-     * 注意：一定要能拿到对应model
+     * 一个控件会绑定一个valuehelpdialog实例
+     * 每次选择完数据之后在控件上会有一个customdata叫vh
+     * 里面是选择的数据，单选为那行数据，多选为选择的数据列表
      */
 
     /**
@@ -354,16 +356,6 @@ sap.ui.define([
             oTable.setSelectionBehavior(SelectionBehavior.RowOnly);
         }
 
-        // const ovh = this._oControl.data("vh");
-        // if (ovh) {
-        //     this.setTableSelected = () => {
-        //         const aDatas = this._oDialog.getModel().getProperty("/tabledata");
-        //         const nIndex = aDatas.findIndex(row => {
-        //             return Object.entries(ovh).every(([key, value]) => typeof value === "object" ? true : row[key] === value);
-        //         });
-        //         this._oTable.setSelectedIndex(nIndex);
-        //     };
-        // }
         const sValue = this._oControl.getValue();
 
         if (sValue) {
@@ -402,22 +394,6 @@ sap.ui.define([
                 ]);
             });
         }
-
-        // const ovh = this._oControl.data("vh");
-        // if (ovh) {
-        //     this.setTableSelected = () => {
-        //         const aDatas = this._oDialog.getModel().getProperty("/tabledata");
-        //         const aIndices = [];
-        //         aDatas.forEach((row, index) => {
-        //             if (ovh.some(item => {
-        //                 return Object.entries(item).every(([key, value]) => typeof value === "object" ? true : row[key] === value);
-        //             }) === true) {
-        //                 aIndices.push(index);
-        //             }
-        //         });
-        //         this._oTable.setSelectedIndex(aIndices);
-        //     };
-        // }
 
         this._oDialog.setTokens(this._oControl.getTokens());
     };
@@ -517,22 +493,21 @@ sap.ui.define([
      */
     ValueHelpDialog.open = function (oEvent, oProperties, oController) {
         const oControl = oEvent.getSource();
-        const oVH = oControl.data("oVH");
+        const oVH = oControl._oValueHelpDialog;
         if (oVH) {
             oVH.openDialog();
-            return;
+        } else {
+            var oValueHelpDialog = new ValueHelpDialog(oEvent, oController);
+            oValueHelpDialog._oControl.setBusy(true);
+            oController._processObject(oProperties, oEvent);
+            oValueHelpDialog.setProperty(oProperties);
+            oValueHelpDialog.initDialog().then(function () {
+                oValueHelpDialog._oControl.setBusy(false);
+            }).finally(function () {
+                oControl._oValueHelpDialog = oValueHelpDialog;
+                oValueHelpDialog.openDialog();
+            });
         }
-        var oValueHelpDialog = new ValueHelpDialog(oEvent, oController);
-        oValueHelpDialog._oControl.setBusy(true);
-        oController._processObject(oProperties, oEvent);
-        oValueHelpDialog.setProperty(oProperties);
-        oValueHelpDialog.initDialog().then(function () {
-            oValueHelpDialog._oControl.setBusy(false);
-        }).finally(function () {
-            // if (oValueHelpDialog.setTableSelected) { oValueHelpDialog.setTableSelected(); }
-            oControl.data("oVH", oValueHelpDialog);
-            oValueHelpDialog.openDialog();
-        });
     };
 
     return ValueHelpDialog;
