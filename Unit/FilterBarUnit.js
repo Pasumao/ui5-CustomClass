@@ -495,6 +495,9 @@ sap.ui.define([
             case "sap.m.Select":
                 filters = this.Select_to_Filter(sKey, itemcontrol);
                 break;
+            case "sap.m.ComboBox":
+                filters = this.ComboBox_to_Filter(sKey, itemcontrol);
+                break;
             case "sap.m.SearchField":
                 filters = this.SearchField_to_Filter(sKey, itemcontrol);
                 break;
