@@ -1,3 +1,10 @@
+
+/**
+ * ============================================
+ * 这个文件是示例，不是可执行文件，请不要直接运行。
+ * ============================================
+ */
+
 sap.ui.define([
     "app/controller/Basecontroller",
     "sap/ui/comp/smarttable/SmartTable"

@@ -454,13 +454,13 @@ sap.ui.define([
      * @typedef {Object} Columns
      * @property {string} text - 열 제목입니다.
      * @property {string} key - 열 필드입니다.
-     * @property {string} [other] - 추가적인 속성입니다.
+     * @property {string} [other] - 其他参数都会放到sap.ui.table.Column里
      *
      * @typedef {Object} Filter
-     * @property {string} key - 필드 이름입니다.
-     * @property {string} operator - 연산자입니다.
-     * @property {string} value1 - 첫 번째 값입니다.
-     * @property {string} [value2] - 두 번째 값입니다.
+     * @property {string} key - key
+     * @property {string} operator - operator
+     * @property {string} value1 - value1
+     * @property {string} [value2] - value2
      * 
      * @typedef {Object} Range
      * @property {string} keyField - columnKey
