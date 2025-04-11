@@ -468,6 +468,14 @@ sap.ui.define([
         let filter = new sap.ui.model.Filter(key, operator, control.getSelectedKey());
         return [filter];
     };
+    FilterBarUnit.ComboBox_to_Filter = function (key, control) {
+        let operator = this.getOprator(control);
+        if (!control.getSelectedKey()) {
+            return undefined;
+        }
+        let filter = new sap.ui.model.Filter(key, operator, control.getSelectedKey());
+        return [filter];
+    };
 
     FilterBarUnit.SearchField_to_Filter = function (key, control) {
         return undefined;
