@@ -503,8 +503,8 @@ sap.ui.define([
             oValueHelpDialog.setProperty(oProperties);
             oValueHelpDialog.initDialog().then(function () {
                 oValueHelpDialog._oControl.setBusy(false);
-            }).finally(function () {
                 oControl._oValueHelpDialog = oValueHelpDialog;
+            }).finally(function () {
                 oValueHelpDialog.openDialog();
             });
         }
