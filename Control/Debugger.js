@@ -77,7 +77,7 @@ sap.ui.define([
                         }).data("index", "{index}")
                     ]
                 });
-                this._fn = this._onGetControl.bind(this)
+                this._fn = this._onGetControl.bind(this);;
                 this._oPopover = new Popover({
                     title: "代码执行器",
                     placement: "Top",
@@ -107,15 +107,15 @@ sap.ui.define([
                         new Button({
                             icon: "sap-icon://cursor-arrow",
                             press: (oEvent) => {
-                                var oControl = oEvent.getSource()
+                                var oControl = oEvent.getSource();
                                 if (!this._bt) {
                                     this._bt = oControl;
                                 }
                                 if (oControl.getType() === "Emphasized") {
-                                    oControl.setType("Default")
+                                    oControl.setType("Default");
                                     document.removeEventListener("mouseup", this._fn);
                                 } else {
-                                    oControl.setType("Emphasized")
+                                    oControl.setType("Emphasized");
                                     document.addEventListener("mouseup", this._fn);
                                 }
                             }
