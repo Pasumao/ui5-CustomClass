@@ -204,15 +204,29 @@ sap.ui.define([
          * </ul>
          * @param {object} oFiledCatalog 设置参数
          * @param {string} oFiledCatalog.title 设置标题
+         * @param {string} oFiledCatalog.width 设置label长度
          * @param {object[]} oFiledCatalog.fieldlist 设置字段列表
          * @param {string} oFiledCatalog.fieldlist.key 设置字段在返回值的时候的key
          * @param {string} oFiledCatalog.fieldlist.label 设置字段显示名称
          * @param {boolean} oFiledCatalog.fieldlist.isKey 设置为必须输入
-         * @param {sap.m.InputBase} oFiledCatalog.fieldlist.control 设置字段控件
+         * @param {sap.ui.core.Control} oFiledCatalog.fieldlist.control 设置字段控件
          * @returns {Promise<Object<string,any>>} 返回输入的参数
          */
         getvaluedialog(oFiledCatalog) {
             var oView = this.getView();
+
+            function getValue(oControl) {
+                if (oControl instanceof sap.m.InputBase) {
+                    return oControl.getValue();
+                } else if (oControl instanceof sap.m.DatePicker) {
+                    return oControl.getDateValue();
+                } else if (oControl instanceof sap.m.CheckBox) {
+                    return oControl.getSelected();
+                } else if (oControl instanceof sap.m.Select) {
+                    return oControl.getSelectedKey();
+                }
+                return null;
+            }
 
             return new Promise((resolve, reject) => {
                 const oDialog = new sap.m.Dialog({
@@ -223,8 +237,8 @@ sap.ui.define([
                         text: "OK",
                         type: sap.m.ButtonType.Emphasized,
                         press: async () => {
-                            oFiledCatalog.fieldlist.forEach(field => {
-                                var sValue = field.control.getValue();
+                            for (const field of oFiledCatalog.fieldlist) {
+                                var sValue = getValue(field.control);
 
                                 if (field.isKey) {
                                     if (!sValue) {
@@ -236,16 +250,12 @@ sap.ui.define([
                                         field.control.setValueStateText("");
                                     }
                                 }
-                            });
+                            }
 
                             var oData = {};
                             oFiledCatalog.fieldlist.forEach(field => {
-                                oData[field.key] = field.control.getValue().trim();
+                                oData[field.key] = getValue(field.control);
                             });
-
-                            if (oFiledCatalog.fieldlist.some(field => field.isKey && !field.control.getValue())) {
-                                return;
-                            }
 
                             oDialog.close();
                             resolve(oData);
@@ -265,7 +275,7 @@ sap.ui.define([
                             justifyContent: "Center",
                             items: [
                                 new sap.m.Label({
-                                    width: "10rem",
+                                    width: oFiledCatalog.width || "10rem",
                                     required: field.isKey,
                                     text: field.label + ":"
                                 }),

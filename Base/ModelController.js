@@ -202,11 +202,41 @@ sap.ui.define([
          */
         setmodeldata(oModelName, oData) {
             var oModel = this.getmodel(oModelName);
-
             if (oModel.isA("sap.ui.model.json.JSONModel")) {
                 oModel.setData(oData);
             }
+            return this;
+        },
 
+        /**
+         * 向JSONModel数组追加数据项
+         * @param {string} sModelName 模型名称
+         * @param {string} sPath 数组路径（如 "/items"）
+         * @param {any} oItem 新增项
+         * @returns {sap.ui.core.mvc.Controller} this
+         */
+        addmodeldata(sModelName, sPath, oItem) {
+            const model = this.getmodel(sModelName);
+            const currentData = model.getProperty(sPath) || [];
+            currentData.push(oItem);
+            model.setProperty(sPath, currentData);
+            return this;
+        },
+
+        /**
+         * 根据索引从数组中移除指定项
+         * @param {string} sModelName 模型名称
+         * @param {string} sPath 数组路径
+         * @param {number} iIndex 要删除的索引位置
+         * @returns {sap.ui.core.mvc.Controller} this
+         */
+        popmodeldata: function (sModelName, sPath, iIndex) {
+            const model = this.getmodel(sModelName);
+            const data = model.getProperty(sPath) || [];
+            if (iIndex >= 0 && iIndex < data.length) {
+                data.splice(iIndex, 1);
+                model.setProperty(sPath, data);
+            }
             return this;
         },
 
