@@ -27,12 +27,9 @@ sap.ui.define([
                 if (content.length > 0) {
                     if (content.length === 1) {
                         oControl.setAggregation("t", content[0]);
-                    } else if (content.length === 2) {
+                    } else if (content.length >= 2) {
                         oControl.setAggregation("t", content[0]);
                         oControl.setAggregation("f", content[1]);
-                    } else {
-                        oControl.setAggregation("t", content[0]);
-                        oControl.setAggregation("f", content.slice(1));
                     }
                 }
                 if (oControl.getCondition()) {
