@@ -123,6 +123,8 @@ sap.ui.define([
 			oData = this.jsonParse(oAttachmentData);
 		} else if (oAttachmentData.type === "xml") {
 			oData = this.xmlPrase(oAttachmentData);
+		} else {
+			return oAttachmentData
 		}
 
 		return oData;
