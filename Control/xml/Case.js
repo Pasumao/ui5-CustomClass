@@ -10,16 +10,15 @@ sap.ui.define([
             properties: {
                 value: { type: "any" }
             },
-            // defaultAggregation: "content",
-            // aggregations: {
-            //     content: { type: "sap.ui.core.Control", multiple: true }
-            // }
         },
 
         renderer: function (oRm, oControl) {
             oRm.openStart("div", oControl);
             oRm.openEnd();
-            oRm.renderControl(oControl.getAggregation("content"));
+            oControl.getAggregation("content").forEach(element => {
+                oRm.renderControl(element);
+            });
+
             oRm.close("div");
         }
     });
