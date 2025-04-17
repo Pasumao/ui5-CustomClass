@@ -65,29 +65,39 @@ sap.ui.define([
         /**
          * 自动调整列宽的方法，主要增加了对input类的支持，原生方法不支持input类的自动调整宽度
          * @public
-         * @param {sap.ui.table.Table} oTable table控件实例
+         * @param {sap.ui.table.Table | oEvent} oTable table控件实例
          */
-        __autoWidthTable(oTable) {
+        __autoWidthTable(oEvent) {
+            let oTable;
+            if (oEvent.getSource) {
+                oTable = oEvent.getSource();
+            } else {
+                oTable = oEvent;
+            }
             const aColumns = oTable.getColumns();
 
             aColumns.forEach(column => {
-                column.autoResize();
-                let sWight = column.getWidth();
-                if (!column.getTemplate().getItems) {
+                try {
+                    column.autoResize();
+                    let sWight = column.getWidth();
+                    if (!column.getTemplate().getItems) {
+                        return;
+                    }
+                    let aTemplates = column.getTemplate().getItems();
+                    let oTemplate = aTemplates[1];
+
+                    sWight = sWight.split("px")[0];
+                    sWight = Number(sWight);
+                    sWight += 20;
+
+                    if (oTemplate.mAggregations._endIcon) { sWight += 32; }
+                    if (sWight > 300) { sWight = 300; }
+
+                    sWight = String(sWight) + "px";
+                    column.setWidth(sWight);
+                } catch {
                     return;
                 }
-                let aTemplates = column.getTemplate().getItems();
-                let oTemplate = aTemplates[1];
-
-                sWight = sWight.split("px")[0];
-                sWight = Number(sWight);
-                sWight += 20;
-
-                if (oTemplate.mAggregations._endIcon) { sWight += 32; }
-                if (sWight > 300) { sWight = 300; }
-
-                sWight = String(sWight) + "px";
-                column.setWidth(sWight);
             });
         },
 
