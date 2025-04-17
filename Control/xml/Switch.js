@@ -12,9 +12,7 @@ sap.ui.define([
             },
             defaultAggregation: "content",
             aggregations: {
-                content: { type: "sap.ui.core.Control", multiple: true, default: true },
-                on: { type: "sap.ui.core.Control", multiple: false },
-                off: { type: "sap.ui.core.Control", multiple: false }
+                content: { type: "sap.ui.core.Control", multiple: true, default: true }
             }
 
         }
