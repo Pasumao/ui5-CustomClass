@@ -5,7 +5,7 @@ sap.ui.define([
 ) {
     "use strict";
 
-    const ifControl = Control.extend("com.aspn.tools.ybcpi0010.controller.ui5-CustomClass.Control.xml.if", {
+    const ifControl = Control.extend("Control.xml.if", {
         metadata: {
             properties: {
                 condition: { type: "boolean", defaultValue: false }

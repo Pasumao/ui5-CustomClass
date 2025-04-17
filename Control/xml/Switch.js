@@ -5,16 +5,39 @@ sap.ui.define([
 ) {
     "use strict";
 
-    return Control.extend("com.aspn.tools.ybcpi0010.controller.ui5-CustomClass.Control.xml.Switch", {
+    const Switch = Control.extend("Control.xml.Switch", {
         metadata: {
             properties: {
                 value: { type: "any" }
             },
             defaultAggregation: "content",
             aggregations: {
-                content: { type: "sap.ui.core.Control", multiple: true, default: true }
-            }
+                content: { type: "Control.Base.CaseBase", multiple: true },
+                cases: { type: "Control.xml.Case", multiple: true },
+                default: { type: "Control.xml.Default", multiple: false }
+            },
+        },
 
+        renderer: function (oRm, oControl) {
+            oRm.openStart("div", oControl);
+            oRm.openEnd();
+
+            const aContents = oControl.getAggregation("content");
+            aContents.forEach((oCase) => {
+                if (oCase.isA("Control.xml.Case")) {
+                    oControl.addAggregation("cases", oCase);
+                } else if (oCase.isA("Control.xml.Default")) {
+                    oControl.setAggregation("default", oCase);
+                }
+            })
+
+
+
+            oRm.renderControl(oControl.getAggregation("content"));
+
+            oRm.close("div");
         }
     });
+
+    return Switch;
 });
