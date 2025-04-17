@@ -405,10 +405,12 @@ sap.ui.define([
     ValueHelpDialog.prototype._singleok = function (oEvent) {
         const aTokens = oEvent.getParameter("tokens");
 
-        const nSelected = this._oTable.getSelectedIndices();
-        if (nSelected.length !== 0) {
-            const oRow = this._oDialog.getModel().getProperty("/tabledata/" + nSelected[0]);
-            this._oControl.data("vh", oRow);
+        if (this._oTable) {
+            const nSelected = this._oTable.getSelectedIndices();
+            if (nSelected.length !== 0) {
+                const oRow = this._oDialog.getModel().getProperty("/tabledata/" + nSelected[0]);
+                this._oControl.data("vh", oRow);
+            }
         }
 
         if (aTokens.length === 0) {
@@ -428,9 +430,11 @@ sap.ui.define([
     ValueHelpDialog.prototype._multiok = function (oEvent) {
         var aTokens = oEvent.getParameter("tokens");
 
-        const aSelecteds = this._oTable.getSelectedIndices();
-        const aSelectedRows = aSelecteds.map(i => this._oDialog.getModel().getProperty("/tabledata/" + i));
-        this._oControl.data("vh", aSelectedRows);
+        if (this._oTable) {
+            const aSelecteds = this._oTable.getSelectedIndices();
+            const aSelectedRows = aSelecteds.map(i => this._oDialog.getModel().getProperty("/tabledata/" + i));
+            this._oControl.data("vh", aSelectedRows);
+        }
 
         this._oControl.setTokens(aTokens.map(token => {
             if (token.data("range")) {
