@@ -31,9 +31,17 @@ sap.ui.define([
                 }
             })
 
+            const value = oControl.getValue();
+            const aCases = oControl.getAggregation("cases");
+            let renderControl = oControl.getAggregation("default");
+            for (const oCase of aCases) {
+                if (value === oCase.getValue()) {
+                    renderControl = oCase;
+                    break;
+                }
+            }
 
-
-            oRm.renderControl(oControl.getAggregation("content"));
+            oRm.renderControl(renderControl);
 
             oRm.close("div");
         }

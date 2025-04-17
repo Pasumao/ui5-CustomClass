@@ -7,9 +7,6 @@ sap.ui.define([
 
     return Control.extend("Control.Base.CaseBase", {
         metadata: {
-            properties: {
-                value: { type: "any" }
-            },
             defaultAggregation: "content",
             aggregations: {
                 content: { type: "sap.ui.core.Control", multiple: true, default: true }
