@@ -17,7 +17,7 @@ sap.ui.define([
 	 */
 	LogParser.detectContent = function (sContent) {
 		if (!sContent) { return { _raw: undefined, type: undefined }; }
-		if (sContent.startsWith("<?xml")) {
+		if (sContent.startsWith("<")) {
 			return { _raw: sContent, type: "xml" };
 		}
 		try {
@@ -51,12 +51,13 @@ sap.ui.define([
 		oAttachmentData.content = oAttachmentData._raw;
 		// oAttachmentData.content.name = "table";
 		this.jsonSetName(oAttachmentData.content, "table");
-		oAttachmentData._raw = JSON.stringify(oAttachmentData._raw);
+		oAttachmentData._raw = JSON.stringify(oAttachmentData._raw, null, 4);
 
 		return oAttachmentData;
 	};
 
 	LogParser.xmlGetRowRoot = function (oXml) {
+		return oXml
 		if (oXml.children.length > 1) {
 			return oXml;
 		} else {
@@ -108,9 +109,16 @@ sap.ui.define([
 		}
 
 		oAttachmentData.content = this.xml2json(oRowRoot);
-
-		// const aRowData = this.xml2json(oRowRoot);
-		// debugger
+		if (!oAttachmentData.content.name) {
+			oAttachmentData.content.name = oRowRoot.nodeName;
+		}
+		// if (Array.isArray(oAttachmentData.content[0])) {
+		// 	let data = JSON.parse(JSON.stringify(oAttachmentData.content[0]));
+		// 	let name = oAttachmentData.content.name
+		// 	delete oAttachmentData.content
+		// 	oAttachmentData.content = [{ [`${data.name}`]: data[0] }];
+		// 	oAttachmentData.content["name"] = name;
+		// }
 
 		return oAttachmentData;
 	};
