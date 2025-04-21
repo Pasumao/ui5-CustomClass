@@ -48,44 +48,124 @@ sap.ui.define([
 	};
 
 	LogParser.jsonParse = function (oAttachmentData) {
-		oAttachmentData.content = oAttachmentData._raw;
-		// oAttachmentData.content.name = "table";
-		this.jsonSetName(oAttachmentData.content, "table");
+		let data = oAttachmentData._raw;
+		let name = "table";
+
+		//如果是数组最外层
+		if (Array.isArray(data) && data.length > 0) {
+			//如果对象内只有一个属性
+			if (Object.keys(data[0]).length === 1) {
+				name = Object.keys(data[0])[0];
+				if (Array.isArray(data[0][name])) {
+					//如果里面是数组
+					data = data[0][name];
+				} else { //如果里面是对象
+					data = data.map(i => i[name]);
+				}
+			}
+		}
+
+		oAttachmentData.content = data;
+		this.jsonSetName(oAttachmentData.content, name);
 		oAttachmentData._raw = JSON.stringify(oAttachmentData._raw, null, 4);
 
 		return oAttachmentData;
 	};
 
 	LogParser.xmlGetRowRoot = function (oXml) {
-		return oXml
-		if (oXml.children.length > 1) {
-			return oXml;
-		} else {
-			return this.xmlGetRowRoot(oXml.children[0]);
+		if (oXml.nodeName === "#document" && oXml.children.length === 1) {
+			return oXml.children[0];
 		}
+		return oXml;
 	};
 
-	LogParser.xml2json = function (oXml) {
-		var obj;
-		if (oXml.children.length !== 0) { // element node
-			obj = {};
-			var aCill = [...oXml.children];
-			if (aCill.every(child => child.nodeName === aCill[0].nodeName)) {
-				obj = [];
-				obj.name = aCill[0].nodeName;
-				aCill.forEach((c) => {
-					obj.push(this.xml2json(c));
-				});
-			} else {
-				aCill.forEach(child => {
-					const nodeName = child.nodeName;
-					obj[nodeName] = this.xml2json(child);
-				});
-			}
-		} else {
-			return oXml.textContent.trim();
+	LogParser.xml2json = function (oXml, isGetColumns) {
+		function isTextNode(oXml) {
+			return oXml.childNodes.length > 0
+				&& oXml.childNodes[0].nodeName === "#text"
+				&& oXml.childNodes.length === 1;
 		}
-		return obj;
+
+		function isTable3Node(oXml) {
+			//首先判断有没有三层结构
+			let oChild1, oChild2;
+			if (oXml.children.length > 0) {
+				oChild1 = oXml.children[0];
+				if (oChild1.children.length > 0) {
+					oChild2 = oChild1.children[0];
+				} else {
+					return false;
+				}
+			} else {
+				return false;
+			}
+			//判断第三层是否有文本节点，如果有那肯定是table3
+			if ([...oChild1.children].some(c => isTextNode(c))) {
+				return true;
+			}
+			//如果第二层节点名全部一样且大于1个则为table3
+			if (
+				[...oXml.children].every(c => c.nodeName === oChild1.nodeName)
+				&& [...oXml.children].length > 1
+			) {
+				return true;
+			}
+		}
+
+		function isTable2Node(oXml) {
+			//首先判断有没有两层结构
+			if (!(oXml.children.length > 0)) {
+				return false;
+			}
+			return true;
+		}
+
+		if (isTextNode(oXml)) {
+			return oXml.childNodes[0].nodeValue
+		} else if (isTable3Node(oXml)) {
+			let obj = []
+			let a = [...oXml.children];
+			a.forEach(c => {
+				obj.push(this.xml2json(c, true));
+			});
+			obj.name = oXml.nodeName;
+			return obj;
+		} else if (isGetColumns) {
+			let row = {};
+			let a = [...oXml.children];
+			a.forEach(c => {
+				row[c.nodeName] = this.xml2json(c);
+			});
+			return row
+		} else if (isTable2Node(oXml)) {
+			let row = {};
+			let a = [...oXml.children];
+			a.forEach(c => {
+				row[c.nodeName] = this.xml2json(c);
+			});
+			let obj = [row];
+			obj.name = oXml.nodeName;
+			return obj
+		} else {
+			var obj = {};
+			var aCill = [...oXml.children];
+			if (oXml.children.length !== 0) {
+				if (aCill.some(child => child.childNodes.length === 1)) {
+					aCill.forEach(child => {
+						const nodeName = child.nodeName;
+						obj[nodeName] = this.xml2json(child);
+					});
+					return {
+						[oXml.nodeName]: obj
+					}
+				} else {
+					obj[oXml.nodeName] = aCill.map(c => this.xml2json(c));
+				}
+			} else {
+				return oXml.textContent;
+			}
+			return obj;
+		}
 	};
 
 	LogParser.xmlPrase = function (oAttachmentData) {
@@ -109,18 +189,21 @@ sap.ui.define([
 		}
 
 		oAttachmentData.content = this.xml2json(oRowRoot);
-		if (!oAttachmentData.content.name) {
-			oAttachmentData.content.name = oRowRoot.nodeName;
-		}
-		// if (Array.isArray(oAttachmentData.content[0])) {
-		// 	let data = JSON.parse(JSON.stringify(oAttachmentData.content[0]));
-		// 	let name = oAttachmentData.content.name
-		// 	delete oAttachmentData.content
-		// 	oAttachmentData.content = [{ [`${data.name}`]: data[0] }];
-		// 	oAttachmentData.content["name"] = name;
-		// }
+		this.setName(oAttachmentData.content)
 
 		return oAttachmentData;
+	};
+
+	LogParser.setName = function (oJson, name) {
+		// if (name) {
+		// 	oJson.name = name;
+		// } else {
+		// 	Object.entries(oJson).forEach(([key, value]) => {
+		// 		if (typeof value === "object") {
+		// 			this.setName(value, key);
+		// 		}
+		// 	});
+		// }
 	};
 
 	LogParser.parse = function (sLog) {
