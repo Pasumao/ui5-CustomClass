@@ -502,11 +502,11 @@ sap.ui.define([
         const oVH = oControl._oValueHelpDialog;
         if (oVH) {
             if (oVH._oProperties.table && oVH._oProperties.table.refresh) {
-                oValueHelpDialog._oControl.setBusy(true);
+                oControl.setBusy(true);
                 oVH.initDialog().then(function () {
-                    oValueHelpDialog._oControl.setBusy(false);
+                    oControl.setBusy(false);
                 }).finally(function () {
-                    oValueHelpDialog.openDialog();
+                    oVH.openDialog();
                 });
             }
             oVH.openDialog();
