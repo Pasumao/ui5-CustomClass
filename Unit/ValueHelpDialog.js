@@ -487,6 +487,7 @@ sap.ui.define([
      * @param {string} oProperties.key - 表中选择的哪列作为输出
      * @param {string} [oProperties.title] - 弹窗标题
      * @param {object} oProperties.table - 表相关参数
+     * @param {string} oProperties.table.refresh - model类型，jsonmodel或odatamodel
      * @param {string} oProperties.table.modelName - model的name，支持jsonmodel，odatamodel
      * @param {string} oProperties.table.modelPath - 路径
      * @param {(string|Columns)[]} [oProperties.table.columns] - 列的参数
@@ -499,6 +500,14 @@ sap.ui.define([
         const oControl = oEvent.getSource();
         const oVH = oControl._oValueHelpDialog;
         if (oVH) {
+            if (oVH._oProperties.table.refresh) {
+                oValueHelpDialog._oControl.setBusy(true);
+                oVH.initDialog().then(function () {
+                    oValueHelpDialog._oControl.setBusy(false);
+                }).finally(function () {
+                    oValueHelpDialog.openDialog();
+                });
+            }
             oVH.openDialog();
         } else {
             var oValueHelpDialog = new ValueHelpDialog(oEvent, oController);
