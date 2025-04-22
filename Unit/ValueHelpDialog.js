@@ -62,6 +62,7 @@ sap.ui.define([
     const aTABLE_FILTER_KEYS = [
         "modelName", //table的数据来源，模型，支持JSONmodel，ODataModel v2 v4
         "modelPath", //数据的路径
+        "refresh",   //是否每次刷新数据
         "filters",   //数据的过滤条件，支持解析{modelname>/modelpath}格式来动态变化
         "columns"    //table的columns配置，继承sap.ui.table.Column的属性
     ];
@@ -500,7 +501,7 @@ sap.ui.define([
         const oControl = oEvent.getSource();
         const oVH = oControl._oValueHelpDialog;
         if (oVH) {
-            if (oVH._oProperties.table.refresh) {
+            if (oVH._oProperties.table && oVH._oProperties.table.refresh) {
                 oValueHelpDialog._oControl.setBusy(true);
                 oVH.initDialog().then(function () {
                     oValueHelpDialog._oControl.setBusy(false);
