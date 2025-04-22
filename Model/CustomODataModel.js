@@ -71,11 +71,14 @@ sap.ui.define([
     /**
      * 发送GET请求
      * @param {string} sPath 路径
-     * @param {RequestParam} oParameters 参数
+     * @param {RequestParam} [oParameters] 参数
      * @returns {Promise<Array|string>} 请求结果
      */
     CustomODataModel.prototype.GET = async function (sPath, oParameters) {
         const oReq = await this._req("GET", sPath, undefined, oParameters);
+        if (oReq.error) {
+            return oReq.error;
+        }
         if (oReq.body.d) {
             return oReq.body.d.results;
         }

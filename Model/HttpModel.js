@@ -185,7 +185,29 @@ sap.ui.define([
     HttpModel.prototype.sendRequest = async function (oRequest) {
         try {
             const req = await fetch(oRequest.url, oRequest.param);
-            const data = await req.clone().json().catch(() => req.text());
+            const contentType = req.headers.get("Content-Type") || "";
+            const isFile = contentType.includes("application/octet-stream")
+                || contentType.includes("application/pdf")
+                || contentType.includes("image/")
+                || contentType.includes("application/zip");
+            let data;
+            if (isFile) {
+                const contentDisposition = req.headers.get("Content-disposition");
+                let filename = "";
+                if (contentDisposition) {
+                    // 使用正则表达式提取 filename 值（支持带引号和不带引号的情况）
+                    const filenameMatch = contentDisposition.match(/filename[\s*=\s*"]*([^;\n]*)/);
+                    if (filenameMatch && filenameMatch[1]) {
+                        filename = filenameMatch[1].trim().replace(/^"|"$/g, ""); // 去除首尾引号
+                    }
+                }
+                data = {
+                    blob: await req.blob(),
+                    filename: filename
+                }
+            } else {
+                data = await req.clone().json().catch(() => req.text());
+            }
 
             if (!req.ok) {
                 //throw new Error(`HTTP error! Status: ${req.status}, Data: ${data}`);
@@ -194,6 +216,7 @@ sap.ui.define([
 
             return {
                 body: data,
+                req: req,
                 status: req.status,
                 headers: req.headers,
                 ok: req.ok,
