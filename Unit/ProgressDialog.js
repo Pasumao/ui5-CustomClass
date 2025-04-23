@@ -12,7 +12,7 @@ sap.ui.define([
     "use strict";
 
     const ProgressDialog = baseObject.extend("Unit.ProgressDialog", {
-        constructor: function () {
+        constructor: function (oParameters) {
             this._oProgressIndicator = new ProgressIndicator({
                 state: "Success",
                 showValue: false
@@ -24,6 +24,7 @@ sap.ui.define([
             });
             this._oDialog = new Dialog({
                 contentWidth: "30%",
+                title: oParameters.title || "Dialog",
                 content: [
                     this._oProgressIndicator,
                     this._oTextArea
