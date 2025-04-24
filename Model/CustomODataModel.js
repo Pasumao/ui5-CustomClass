@@ -96,6 +96,9 @@ sap.ui.define([
      */
     CustomODataModel.prototype.POST = async function (sPath, oData, oParameters) {
         const oReq = await this._req("POST", sPath, oData, oParameters);
+        if (oReq.error) {
+            return oReq.error;
+        }
         return oReq;
     };
 
@@ -109,6 +112,9 @@ sap.ui.define([
      */
     CustomODataModel.prototype.DELETE = async function (sPath, oParameters) {
         const oReq = await this._req("DELETE", sPath, undefined, oParameters);
+        if (oReq.error) {
+            return oReq.error;
+        }
         return oReq;
     };
 
@@ -123,6 +129,9 @@ sap.ui.define([
      */
     CustomODataModel.prototype.PUT = async function (sPath, oData, oParameters) {
         const oReq = await this._req("PUT", sPath, oData, oParameters);
+        if (oReq.error) {
+            return oReq.error;
+        }
         return oReq;
     };
 
@@ -137,6 +146,9 @@ sap.ui.define([
      */
     CustomODataModel.prototype.PATCH = async function (sPath, oData, oParameters) {
         const oReq = await this._req("PATCH", sPath, oData, oParameters);
+        if (oReq.error) {
+            return oReq.error;
+        }
         return oReq;
     };
 
