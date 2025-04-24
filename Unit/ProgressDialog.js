@@ -38,6 +38,10 @@ sap.ui.define([
         }
     });
 
+    /**
+     * 输出日志
+     * @param {string} sText 日志内容
+     */
     ProgressDialog.prototype.log = function (sText) {
         const sTextArea = this._oTextArea
         let sValue = sTextArea.getValue();
@@ -50,6 +54,10 @@ sap.ui.define([
         sTextArea.setValue(sValue);
     }
 
+    /**
+     * 输出错误日志
+     * @param {string} sText 日志内容
+     */
     ProgressDialog.prototype.error = function (sText) {
         const sTextArea = this._oTextArea
         let sValue = sTextArea.getValue();
@@ -64,10 +72,19 @@ sap.ui.define([
         sTextArea.setValue(sValue);
     }
 
+    /**
+     * 设置进度条
+     * @param {number} iValue 进度百分比
+     */
     ProgressDialog.prototype._setPercentValue = function (iValue) {
         this._oProgressIndicator.setPercentValue(iValue);
     }
 
+    /**
+     * 设置任务
+     * @param {string} name 任务名称
+     * @param {number} [total] 任务总数
+     */
     ProgressDialog.prototype.setTask = function (name, total = 1) {
         if (this._aCurrentTasks.some(task => task.name === name)) {
             //去掉原先的任务
@@ -83,10 +100,19 @@ sap.ui.define([
         this._setPercentValue(0); // 重置进度条
     };
 
-    ProgressDialog.prototype.getAllWorkload = function () {
+    /**
+     * 获取所有任务的总工作量
+     * @returns {number} 总工作量
+     */
+    ProgressDialog.prototype._getAllWorkload = function () {
         return this._aCurrentTasks.reduce((acc, task) => acc + task.current, 0);
     };
 
+    /**
+     * 提交任务
+     * @param {string} name 任务名称
+     * @param {number} [increment] 增量
+     */
     ProgressDialog.prototype.submitTask = function (name, increment = 1) {
         if (!this._aCurrentTasks.some(task => task.name === name)) {
             return;
@@ -97,18 +123,27 @@ sap.ui.define([
         if (task.current >= task.total) {
             task.current = task.total;
         }
-        this.refreshPercentValue();
+        this._refreshPercentValue();
     };
 
-    ProgressDialog.prototype.refreshPercentValue = function () {
-        const percent = Math.round((this.getAllWorkload() / this._aCurrentTasks.reduce((acc, task) => acc + task.total, 0)) * 100);
+    /**
+     * 刷新进度条
+     */
+    ProgressDialog.prototype._refreshPercentValue = function () {
+        const percent = Math.round((this._getAllWorkload() / this._aCurrentTasks.reduce((acc, task) => acc + task.total, 0)) * 100);
         this._setPercentValue(percent);
     };
 
+    /**
+     * 打开进度条
+     */
     ProgressDialog.prototype.open = function () {
         this._oDialog.open();
     }
 
+    /**
+     * 关闭进度条
+     */
     ProgressDialog.prototype.close = function () {
         this._oDialog.close();
     }
