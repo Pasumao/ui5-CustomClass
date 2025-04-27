@@ -2,18 +2,23 @@
 sap.ui.define([
     "./ModelController",
     "../Unit/ValueHelpDialog",
-    "../Control/Debugger"
+    "../Control/Debugger",
+    "sap/ui/core/EventBus",
+    "../Unit/FragmentEvent"
 ], function (
     Controller,
     ValueHelpDialog,
-    Debugger) {
+    Debugger,
+    EventBus,
+    FragmentEvent
+) {
     "use strict";
 
     return Controller.extend("app.controller.Base.BaseController", {
         _bind() {           //绑定this的元素
             Controller.prototype._bind.apply(this, arguments);
             this.Router = this.getOwnerComponent().getRouter();
-            this.EventBus = this.getOwnerComponent().getEventBus();
+            this.EventBus = EventBus.getInstance();
             this.EventLoop = [];
             // window.c = this;
             // eslint-disable-next-line fiori-custom/sap-no-global-define
@@ -48,6 +53,8 @@ sap.ui.define([
                 funcmax();
             }, 0);
         },
+
+        h: FragmentEvent.h,
 
         /**
          * valuehelp的调用方法，如果要处理数据可以照着写
