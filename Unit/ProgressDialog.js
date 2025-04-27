@@ -12,6 +12,15 @@ sap.ui.define([
     "use strict";
 
     const ProgressDialog = baseObject.extend("Unit.ProgressDialog", {
+        /**
+         * 
+         * @param {object} oParameters 初始化参数
+         * @param {string} [oParameters.title] 标题
+         * @param {string} [oParameters.contentWidth] Dialog宽度 默认为"30%"
+         * @param {sap.ui.core.Control} [oParameters.content] 内容
+         * @param {sap.m.Button} [oParameters.endButton] endButton
+         * @param {sap.m.Button} [oParameters.beginButton] beginButton
+         */
         constructor: function (oParameters) {
             this._oProgressIndicator = new ProgressIndicator({
                 state: "Success",
@@ -22,17 +31,23 @@ sap.ui.define([
                 rows: 10,
                 editable: false
             });
+            this._content = oParameters ? oParameters.content : null;
+
+            const defultEndButton = new sap.m.Button({
+                text: "Close",
+                press: () => this.close()
+            });
+
             this._oDialog = new Dialog({
-                contentWidth: "30%",
-                title: oParameters.title || "Dialog",
+                contentWidth: oParameters ? oParameters.contentWidth || "30%" : "30%",
+                title: oParameters ? oParameters.title || "Dialog" : "Dialog",
                 content: [
                     this._oProgressIndicator,
+                    this._content,
                     this._oTextArea
                 ],
-                endButton: new sap.m.Button({
-                    text: "Close",
-                    press: () => this.close()
-                })
+                endButton: oParameters ? oParameters.endButton || defultEndButton : defultEndButton,
+                beginButton: oParameters ? oParameters.beginButton : null
             }).addStyleClass("sapUiContentPadding")
             this._aCurrentTasks = [];
         }
@@ -47,7 +62,7 @@ sap.ui.define([
         let sValue = sTextArea.getValue();
         const time = new Date().toLocaleTimeString();
         if (!sValue) {
-            sValue = sText;
+            sValue = "[Log][" + time + "]:" + sText;
         } else {
             sValue = "[Log][" + time + "]:" + sText + "\n" + sValue;
         }
@@ -63,7 +78,7 @@ sap.ui.define([
         let sValue = sTextArea.getValue();
         const time = new Date().toLocaleTimeString();
         if (!sValue) {
-            sValue = sText;
+            sValue = "[Error][" + time + "]:" + sText;
         } else {
             sValue = "[Error][" + time + "]:" + sText + "\n" + sValue;
         }
