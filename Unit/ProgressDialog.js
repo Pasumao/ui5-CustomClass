@@ -17,7 +17,7 @@ sap.ui.define([
          * @param {object} oParameters 初始化参数
          * @param {string} [oParameters.title] 标题
          * @param {AbortController} [oParameters.abortController] Abortcontroller
-         * @param {string} [oParameters.contentWidth] Dialog宽度 默认为"30%"
+         * @param {string} [oParameters.dialogWidth] Dialog宽度 默认为"30%"
          * @param {sap.ui.core.Control} [oParameters.content] 内容
          * @param {sap.m.Button} [oParameters.endButton] endButton
          * @param {sap.m.Button} [oParameters.beginButton] beginButton
@@ -47,7 +47,7 @@ sap.ui.define([
             this._abortController = oParameters ? oParameters.abortController : null;
 
             this._oDialog = new Dialog({
-                contentWidth: oParameters ? oParameters.contentWidth || "30%" : "30%",
+                contentWidth: oParameters ? oParameters.dialogWidth || "30%" : "30%",
                 title: oParameters ? oParameters.title || "Dialog" : "Dialog",
                 content: [
                     this._oProgressIndicator,
