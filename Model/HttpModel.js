@@ -40,6 +40,7 @@ sap.ui.define([
      * @property {string} [referrer] - 请求来源，默认为`no-referrer`
      * @property {string} [referrerPolicy] - 请求来源策略，默认为`no-referrer-when-downgrade`
      * @property {string} [redirect] - 重定向模式，默认为`follow`（可选值：manual/error/follow）
+     * @property {AbortSignal} [signal] - AbortController.signal
      */
 
     /**
@@ -160,7 +161,8 @@ sap.ui.define([
             redirect: mParameters?.redirect || undefined,
             referrer: mParameters?.referrer || undefined,
             referrerPolicy: mParameters?.referrerPolicy || undefined,
-            integrity: mParameters?.integrity || undefined
+            integrity: mParameters?.integrity || undefined,
+            signal: mParameters?.signal || undefined
         };
 
         const oRequest = {
