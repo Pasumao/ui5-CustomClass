@@ -279,7 +279,7 @@ sap.ui.define([
                         }
                     }),
                     endButton: new sap.m.Button({
-                        text: "cancel",
+                        text: "Cancel",
                         press: () => {
                             oDialog.close();
                             reject();
