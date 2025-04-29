@@ -197,7 +197,7 @@ sap.ui.define([
         /**
          * 设置model的值，只支持jsonmodel
          * @param {string} oModelName model name
-         * @param {any} oData omodeldata
+         * @param {object|Array} oData omodeldata
          * @returns {sap.ui.core.mvc.Controller} this
          */
         setmodeldata(oModelName, oData) {
