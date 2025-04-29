@@ -54,7 +54,14 @@ sap.ui.define([
             }, 0);
         },
 
-        h: FragmentEvent.h,
+        /**
+         * FragmentEvent用的简便方法，详情参考Unit/FragmentEvent文件
+         * @param {string} name 
+         * @param {Function} callback 
+         */
+        h(name, callback) {
+            this.EventBus.subscribe("fragment", name, FragmentEvent.h(callback));
+        },
 
         /**
          * valuehelp的调用方法，如果要处理数据可以照着写
