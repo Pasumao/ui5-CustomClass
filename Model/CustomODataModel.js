@@ -39,7 +39,7 @@ sap.ui.define([
     };
 
     /**
-     * @typedef {Object} RequestParam 请求参数类型
+     * @typedef {object} RequestParam 请求参数类型
      * @property {Object<string, any>} [urlParameters] - URL查询参数，键值对自动编码为URL参数
      * @property {Object} [context] - 绑定请求的上下文对象
      * 

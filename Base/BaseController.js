@@ -14,7 +14,7 @@ sap.ui.define([
 ) {
     "use strict";
 
-    return Controller.extend("app.controller.Base.BaseController", {
+    return Controller.extend("Base.BaseController", {
         _bind() {           //绑定this的元素
             Controller.prototype._bind.apply(this, arguments);
             this.Router = this.getOwnerComponent().getRouter();
