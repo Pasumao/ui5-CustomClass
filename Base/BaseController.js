@@ -79,7 +79,7 @@ sap.ui.define([
         /**
          * 自动调整列宽的方法，主要增加了对input类的支持，原生方法不支持input类的自动调整宽度
          * @public
-         * @param {sap.ui.table.Table | oEvent} oTable table控件实例
+         * @param {sap.ui.table.Table|sap.ui.base.Event} oEvent table控件实例
          */
         __autoWidthTable(oEvent) {
             let oTable;
@@ -98,7 +98,9 @@ sap.ui.define([
                         return;
                     }
                     let aTemplates = column.getTemplate().getItems();
-                    let oTemplate = aTemplates[1];
+                    let oTemplate = aTemplates.find(i => i.getVisible());
+
+                    if (!oTemplate) { return; }
 
                     sWight = sWight.split("px")[0];
                     sWight = Number(sWight);
