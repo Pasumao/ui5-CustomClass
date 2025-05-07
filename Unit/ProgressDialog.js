@@ -19,6 +19,7 @@ sap.ui.define([
          * @param {AbortController} [oParameters.abortController] Abortcontroller
          * @param {string} [oParameters.dialogWidth] Dialog宽度 默认为"30%"
          * @param {sap.ui.core.Control} [oParameters.content] 内容
+         * @param {sap.m.Button[]} [oParameters.buttons] 按钮
          * @param {sap.m.Button} [oParameters.endButton] endButton
          * @param {sap.m.Button} [oParameters.beginButton] beginButton
          */
@@ -34,16 +35,6 @@ sap.ui.define([
             });
             this._content = oParameters ? oParameters.content : null;
 
-            const defultEndButton = new sap.m.Button({
-                text: "Close",
-                press: () => {
-                    if (this._abortController) {
-                        this._abortController.abort();
-                    }
-                    this.close();
-                }
-            });
-
             this._abortController = oParameters ? oParameters.abortController : null;
 
             this._oDialog = new Dialog({
@@ -54,12 +45,46 @@ sap.ui.define([
                     this._content,
                     this._oTextArea
                 ],
-                endButton: oParameters ? oParameters.endButton || defultEndButton : defultEndButton,
-                beginButton: oParameters ? oParameters.beginButton : null
+                buttons: this._getButtons(oParameters)
             }).addStyleClass("sapUiContentPadding")
             this._aCurrentTasks = [];
         }
     });
+
+    ProgressDialog.prototype._getButtons = function (oParameters) {
+        const aButtons = [];
+        if (oParameters) {
+            if (oParameters.buttons) {
+                let endButton = oParameters.buttons.find(i => i.data("defaultEndButton"))
+                if (endButton) {
+                    endButton.attachPress(() => {
+                        if (this._abortController) {
+                            this._abortController.abort();
+                        }
+                        this.close();
+                    });
+                }
+                aButtons.push(...oParameters.buttons);
+            } else {
+                if (oParameters.beginButton) {
+                    aButtons.push(oParameters.endButton);
+                }
+                if (oParameters.endButton) {
+                    aButtons.push(oParameters.endButton);
+                } else {
+                    const endButton = ProgressDialog.getEndButton()
+                    endButton.attachPress(() => {
+                        if (this._abortController) {
+                            this._abortController.abort();
+                        }
+                        this.close();
+                    });
+                    aButtons.push(endButton);
+                }
+            }
+        }
+        return aButtons;
+    }
 
     /**
      * 输出日志
@@ -75,6 +100,14 @@ sap.ui.define([
             sValue = "[Log][" + time + "]:" + sText + "\n" + sValue;
         }
         sTextArea.setValue(sValue);
+    }
+
+    ProgressDialog.getEndButton = function () {
+        const defultEndButton = new sap.m.Button({
+            text: "Close"
+        });
+        defultEndButton.data("defaultEndButton", true);
+        return defultEndButton;
     }
 
     /**
