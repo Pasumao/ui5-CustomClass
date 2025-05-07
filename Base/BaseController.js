@@ -120,8 +120,15 @@ sap.ui.define([
                         iWidth = Math.min(iWidth, iTableWidth); // no wider as the table
                         iWidth = Math.max(iWidth, 10); // not too small
                         column.setWidth(`${iWidth + 34}px`);
-                    } else {
-                        return;
+                    }
+
+                    if (column.data("maxWidth")) {
+                        let maxWidth = column.data("maxWidth").split("px")[0];
+                        let width = column.getWidth().split("px")[0];
+                        width = Number(width);
+                        if (width > Number(maxWidth)) {
+                            column.setWidth(`${maxWidth}px`);
+                        }
                     }
                 } catch (e) {
                     return;
