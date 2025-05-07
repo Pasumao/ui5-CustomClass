@@ -100,44 +100,29 @@ sap.ui.define([
             aColumns.forEach(column => {
                 try {
                     column.autoResize();
-                    let sWight = column.getWidth();
-                    if (!column.getTemplate().getItems) {
-                        if (column.getTemplate().isA("sap.m.InputBase")) {
-                            const aInputs = column._mTemplateClones.Standard
-                            const aWidth = aInputs.map(i => {
-                                const oInputDom = i.getDomRef().querySelector("input");
-                                const text = oInputDom.value || oInputDom.placeholder || "";
-                                if (!text) { return 0; }
-                                const font = window.getComputedStyle(oInputDom).font;
-                                const textWidth = measureTextWidth(text, font);
-                                return textWidth;
-                            })
+                    if (column.getTemplate().isA("sap.m.InputBase")) {
+                        const aInputs = column._mTemplateClones.Standard
+                        const aWidth = aInputs.map(i => {
+                            const oInputDom = i.getDomRef().querySelector("input");
+                            const text = oInputDom.value || oInputDom.placeholder || "";
+                            if (!text) { return 0; }
+                            const font = window.getComputedStyle(oInputDom).font;
+                            const textWidth = measureTextWidth(text, font);
+                            if (i.mAggregations._endIcon) { textWidth += 32; }
+                            if (i.mAggregations._beginIcon) { textWidth += 32; }
+                            return textWidth;
+                        })
 
-                            let iWidth = Math.max(...aWidth);
-                            if (iWidth === 0) { return; }
-                            const oTableElement = oTable.getDomRef();
-                            const iTableWidth = oTableElement.querySelector('.sapUiTableCnt').getBoundingClientRect().width;
-                            iWidth = Math.min(iWidth, iTableWidth); // no wider as the table
-                            iWidth = Math.max(iWidth, 10); // not too small
-                            column.setWidth(`${iWidth + 34}px`);
-                        } else {
-                            return;
-                        }
+                        let iWidth = Math.max(...aWidth);
+                        if (iWidth === 0) { return; }
+                        const oTableElement = oTable.getDomRef();
+                        const iTableWidth = oTableElement.querySelector('.sapUiTableCnt').getBoundingClientRect().width;
+                        iWidth = Math.min(iWidth, iTableWidth); // no wider as the table
+                        iWidth = Math.max(iWidth, 10); // not too small
+                        column.setWidth(`${iWidth + 34}px`);
+                    } else {
+                        return;
                     }
-                    let aTemplates = column.getTemplate().getItems();
-                    let oTemplate = aTemplates.find(i => i.getVisible());
-
-                    if (!oTemplate) { return; }
-
-                    sWight = sWight.split("px")[0];
-                    sWight = Number(sWight);
-                    sWight += 20;
-
-                    if (oTemplate.mAggregations._endIcon) { sWight += 32; }
-                    if (sWight > 300) { sWight = 300; }
-
-                    sWight = String(sWight) + "px";
-                    column.setWidth(sWight);
                 } catch (e) {
                     return;
                 }
