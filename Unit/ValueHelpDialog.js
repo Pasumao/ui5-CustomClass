@@ -67,6 +67,10 @@ sap.ui.define([
         "columns"    //table的columns配置，继承sap.ui.table.Column的属性
     ];
 
+    const aFILTERBAR_FILTER_KEYS = [
+        "baseSearchFields",
+    ];
+
     /**
      * @class ValueHelpDialog
      * @extends sap.ui.base.Object
@@ -163,6 +167,10 @@ sap.ui.define([
         if (!this._oProperties.filterBar) {
             this._oProperties.filterBar = {};
         }
+        // 检测是否设置了baseSearchFields
+        if (!this._oProperties.filterBar.baseSearchFields) {
+            this._oProperties.filterBar.baseSearchFields = [this._oProperties.key];
+        }
         // 检测是否有table,如果没有则报错
         if (!this._oProperties.table) {
             throw new Error("table is required in properties");
@@ -212,7 +220,7 @@ sap.ui.define([
                 valueHelpMethod.call(this, this._oTable);
 
                 this._oDialog.setFilterBar(new FilterBar({
-                    ...this._oProperties.filterBar,
+                    ...objfilter(this._oProperties.filterBar, aFILTERBAR_FILTER_KEYS),
                     basicSearch: new SearchField({
                         search: oEvent => {
                             this._oDialog.getFilterBar().fireSearch();
@@ -281,7 +289,10 @@ sap.ui.define([
                         var sSearchText = this._oDialog.getFilterBar().getBasicSearchValue();
 
                         if (sSearchText) {
-                            filters.push(new Filter(sKey, FilterOperator.Contains, sSearchText));
+                            const baseFilters = this._oProperties.filterBar.baseSearchFields.map(f => {
+                                return new Filter(f, FilterOperator.Contains, sSearchText)
+                            })
+                            filters.push(...baseFilters);
                         }
 
                         var oDialogTable = this._oDialog.getTable();
@@ -494,6 +505,7 @@ sap.ui.define([
      * @param {(string|Columns)[]} [oProperties.table.columns] - 列的参数
      * @param {Filter[]} [oProperties.table.filters] - 拿数据时过滤器的参数
      * @param {object} [oProperties.filterBar] - 窗口filterbar的参数
+     * @param {string[]} [oProperties.filterBar.baseSearchFields] - filterbar的baseSearch检索的字段
      * @param {Range} [oProperties.range] - range页面的参数
      * @param {sap.ui.core.mvc.Controller} oController controller
      */
