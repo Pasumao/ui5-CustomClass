@@ -502,10 +502,10 @@ sap.ui.define([
      * @param {object} oProperties - 需要填的参数
      * @param {string} oProperties.key - 表中选择的哪列作为输出
      * @param {string} [oProperties.title] - 弹窗标题
-     * @param {object} oProperties.table - 表相关参数
-     * @param {string} oProperties.table.refresh - model类型，jsonmodel或odatamodel
-     * @param {string} oProperties.table.modelName - model的name，支持jsonmodel，odatamodel
-     * @param {string} oProperties.table.modelPath - 路径
+     * @param {object} [oProperties.table] - 表相关参数
+     * @param {string} [oProperties.table.refresh] - model类型，jsonmodel或odatamodel
+     * @param {string} [oProperties.table.modelName] - model的name，支持jsonmodel，odatamodel
+     * @param {string} [oProperties.table.modelPath] - 路径
      * @param {(string|Columns)[]} [oProperties.table.columns] - 列的参数
      * @param {Filter[]} [oProperties.table.filters] - 拿数据时过滤器的参数
      * @param {object} [oProperties.filterBar] - 窗口filterbar的参数
