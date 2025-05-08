@@ -293,7 +293,10 @@ sap.ui.define([
                             const baseFilters = this._oProperties.filterBar.baseSearchFields.map(f => {
                                 return new Filter(f, FilterOperator.Contains, sSearchText)
                             })
-                            filters.push(...baseFilters);
+                            filters.push(new Filter({
+                                filters: baseFilters,
+                                and: false
+                            }));
                         }
 
                         var oDialogTable = this._oDialog.getTable();
