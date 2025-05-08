@@ -51,7 +51,8 @@ sap.ui.define([
     const aVALUEHELPDIALOG_FILTER_KEYS = [
         "table",    //ValueHelpDialog中的table属性的属性，继承sap.ui.table.Table的属性
         "range",    //ValueHelpDialog的range相关属性
-        "select_one"//是否开启单选模式(单选模式下只能选择一行,但是是多选模式，适用于MultiInput)
+        "select_one",//是否开启单选模式(单选模式下只能选择一行,但是是多选模式，适用于MultiInput)
+        "filterBar"
         //一旦打开单选模式则会自动设置如下属性
         //table.selectionMode = sap.ui.table.SelectionMode.Single;
         //table.selectionBehavior = sap.ui.table.SelectionBehavior.RowOnly;
