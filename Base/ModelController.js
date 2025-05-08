@@ -137,11 +137,14 @@ sap.ui.define([
          * @param {sap.ui.model.Filter[]} [aFilters] filters
          * @returns {object|Array} any
          */
-        async getmodeldata(sModelName, sPath, aFilters) {
+        async getmodeldata(sModelName, sPath = "/", aFilters) {
             const oModel = this.getmodel(sModelName);
 
             if (oModel.isA("sap.ui.model.json.JSONModel")) {
-                return sPath && sPath !== "/" ? oModel.getData()[sPath.slice(1)] : oModel.getData();
+                const bidnList = oModel.bindList(sPath, {}, {}, aFilters);
+                const contexts = bidnList.getContexts();
+                return contexts.map((context) => context.getObject());
+                // return sPath && sPath !== "/" ? oModel.getData()[sPath.slice(1)] : oModel.getData();
             } else if (oModel.isA("sap.ui.model.odata.v2.ODataModel")) {
                 const fGetODatav2 = (aData = [], iSkip = 0) => {
                     return new Promise((resolve, reject) => {
