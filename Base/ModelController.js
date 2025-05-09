@@ -245,6 +245,8 @@ sap.ui.define([
 
         /**
          * 对odata的封装，建议使用batch时使用，如果不使用batch，请使用CustomODataModel
+         * 已废弃,请使用Model/CustomODataModel
+         * @deprecated
          */
         _odata: function () {
 
