@@ -51,7 +51,8 @@ sap.ui.define([
     const aVALUEHELPDIALOG_FILTER_KEYS = [
         "table",    //ValueHelpDialog中的table属性的属性，继承sap.ui.table.Table的属性
         "range",    //ValueHelpDialog的range相关属性
-        "select_one"//是否开启单选模式(单选模式下只能选择一行,但是是多选模式，适用于MultiInput)
+        "select_one",//是否开启单选模式(单选模式下只能选择一行,但是是多选模式，适用于MultiInput)
+        "filterBar"
         //一旦打开单选模式则会自动设置如下属性
         //table.selectionMode = sap.ui.table.SelectionMode.Single;
         //table.selectionBehavior = sap.ui.table.SelectionBehavior.RowOnly;
@@ -62,8 +63,13 @@ sap.ui.define([
     const aTABLE_FILTER_KEYS = [
         "modelName", //table的数据来源，模型，支持JSONmodel，ODataModel v2 v4
         "modelPath", //数据的路径
+        "refresh",   //是否每次刷新数据
         "filters",   //数据的过滤条件，支持解析{modelname>/modelpath}格式来动态变化
         "columns"    //table的columns配置，继承sap.ui.table.Column的属性
+    ];
+
+    const aFILTERBAR_FILTER_KEYS = [
+        "baseSearchFields",
     ];
 
     /**
@@ -162,6 +168,10 @@ sap.ui.define([
         if (!this._oProperties.filterBar) {
             this._oProperties.filterBar = {};
         }
+        // 检测是否设置了baseSearchFields
+        if (!this._oProperties.filterBar.baseSearchFields) {
+            this._oProperties.filterBar.baseSearchFields = [this._oProperties.key];
+        }
         // 检测是否有table,如果没有则报错
         if (!this._oProperties.table) {
             throw new Error("table is required in properties");
@@ -211,7 +221,7 @@ sap.ui.define([
                 valueHelpMethod.call(this, this._oTable);
 
                 this._oDialog.setFilterBar(new FilterBar({
-                    ...this._oProperties.filterBar,
+                    ...objfilter(this._oProperties.filterBar, aFILTERBAR_FILTER_KEYS),
                     basicSearch: new SearchField({
                         search: oEvent => {
                             this._oDialog.getFilterBar().fireSearch();
@@ -280,7 +290,13 @@ sap.ui.define([
                         var sSearchText = this._oDialog.getFilterBar().getBasicSearchValue();
 
                         if (sSearchText) {
-                            filters.push(new Filter(sKey, FilterOperator.Contains, sSearchText));
+                            const baseFilters = this._oProperties.filterBar.baseSearchFields.map(f => {
+                                return new Filter(f, FilterOperator.Contains, sSearchText)
+                            })
+                            filters.push(new Filter({
+                                filters: baseFilters,
+                                and: false
+                            }));
                         }
 
                         var oDialogTable = this._oDialog.getTable();
@@ -486,12 +502,14 @@ sap.ui.define([
      * @param {object} oProperties - 需要填的参数
      * @param {string} oProperties.key - 表中选择的哪列作为输出
      * @param {string} [oProperties.title] - 弹窗标题
-     * @param {object} oProperties.table - 表相关参数
-     * @param {string} oProperties.table.modelName - model的name，支持jsonmodel，odatamodel
-     * @param {string} oProperties.table.modelPath - 路径
+     * @param {object} [oProperties.table] - 表相关参数
+     * @param {string} [oProperties.table.refresh] - model类型，jsonmodel或odatamodel
+     * @param {string} [oProperties.table.modelName] - model的name，支持jsonmodel，odatamodel
+     * @param {string} [oProperties.table.modelPath] - 路径
      * @param {(string|Columns)[]} [oProperties.table.columns] - 列的参数
      * @param {Filter[]} [oProperties.table.filters] - 拿数据时过滤器的参数
      * @param {object} [oProperties.filterBar] - 窗口filterbar的参数
+     * @param {string[]} [oProperties.filterBar.baseSearchFields] - filterbar的baseSearch检索的字段
      * @param {Range} [oProperties.range] - range页面的参数
      * @param {sap.ui.core.mvc.Controller} oController controller
      */
@@ -499,6 +517,14 @@ sap.ui.define([
         const oControl = oEvent.getSource();
         const oVH = oControl._oValueHelpDialog;
         if (oVH) {
+            if (oVH._oProperties.table && oVH._oProperties.table.refresh) {
+                oControl.setBusy(true);
+                oVH.initDialog().then(function () {
+                    oControl.setBusy(false);
+                }).finally(function () {
+                    oVH.openDialog();
+                });
+            }
             oVH.openDialog();
         } else {
             var oValueHelpDialog = new ValueHelpDialog(oEvent, oController);

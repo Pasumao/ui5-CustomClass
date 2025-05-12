@@ -40,6 +40,7 @@ sap.ui.define([
      * @property {string} [referrer] - 请求来源，默认为`no-referrer`
      * @property {string} [referrerPolicy] - 请求来源策略，默认为`no-referrer-when-downgrade`
      * @property {string} [redirect] - 重定向模式，默认为`follow`（可选值：manual/error/follow）
+     * @property {AbortSignal} [signal] - AbortController.signal
      */
 
     /**
@@ -58,22 +59,22 @@ sap.ui.define([
      * 发送GET请求
      * @public
      * @param {string} sPath 请求路径
-     * @param {RequestParam} [mParameters] 请求参数
+     * @param {RequestParam} [oParameters] 请求参数
      * @returns {Promise<RequestReturn>} 返回值
      */
-    HttpModel.prototype.getProperty = async function (sPath, mParameters) {
-        return await this.GET(sPath, mParameters);
+    HttpModel.prototype.getProperty = async function (sPath, oParameters) {
+        return await this.GET(sPath, oParameters);
     };
 
     /**
      * 发送GET请求
      * @public
      * @param {string} sPath 请求路径
-     * @param {RequestParam} [mParameters] 请求参数
+     * @param {RequestParam} [oParameters] 请求参数
      * @returns {Promise<RequestReturn>} 返回值
      */
-    HttpModel.prototype.GET = async function (sPath, mParameters) {
-        return await this._handleRequest("GET", sPath, undefined, mParameters);
+    HttpModel.prototype.GET = async function (sPath, oParameters) {
+        return await this._handleRequest("GET", sPath, undefined, oParameters);
     };
 
     /**
@@ -81,22 +82,22 @@ sap.ui.define([
      * @public
      * @param {string} sPath 请求路径
      * @param {object} oData 请求体
-     * @param {RequestParam} [mParameters] 请求参数
+     * @param {RequestParam} [oParameters] 请求参数
      * @returns {Promise<object>} 请求结果
      */
-    HttpModel.prototype.POST = async function (sPath, oData, mParameters) {
-        return await this._handleRequest("POST", sPath, oData, mParameters);
+    HttpModel.prototype.POST = async function (sPath, oData, oParameters) {
+        return await this._handleRequest("POST", sPath, oData, oParameters);
     };
 
     /**
      * 发送DELETE请求
      * @public
      * @param {string} sPath 请求路径
-     * @param {RequestParam} [mParameters] 请求参数
+     * @param {RequestParam} [oParameters] 请求参数
      * @returns {Promise<RequestReturn>} 返回值
      */
-    HttpModel.prototype.DELETE = async function (sPath, mParameters) {
-        return await this._handleRequest("DELETE", sPath, undefined, mParameters);
+    HttpModel.prototype.DELETE = async function (sPath, oParameters) {
+        return await this._handleRequest("DELETE", sPath, undefined, oParameters);
     };
 
     /**
@@ -104,11 +105,11 @@ sap.ui.define([
      * @public
      * @param {string} sPath 请求路径
      * @param {object} oData 请求体
-     * @param {RequestParam} [mParameters] 请求参数
+     * @param {RequestParam} [oParameters] 请求参数
      * @returns {Promise<RequestReturn>} 返回值
      */
-    HttpModel.prototype.PUT = async function (sPath, oData, mParameters) {
-        return await this._handleRequest("PUT", sPath, oData, mParameters);
+    HttpModel.prototype.PUT = async function (sPath, oData, oParameters) {
+        return await this._handleRequest("PUT", sPath, oData, oParameters);
     };
 
     /**
@@ -116,11 +117,11 @@ sap.ui.define([
      * @public
      * @param {string} sPath 请求路径
      * @param {object} oData 请求体
-     * @param {RequestParam} [mParameters] 请求参数
+     * @param {RequestParam} [oParameters] 请求参数
      * @returns {Promise<RequestReturn>} 返回值
      */
-    HttpModel.prototype.PATCH = async function (sPath, oData, mParameters) {
-        return await this._handleRequest("PATCH", sPath, oData, mParameters);
+    HttpModel.prototype.PATCH = async function (sPath, oData, oParameters) {
+        return await this._handleRequest("PATCH", sPath, oData, oParameters);
     };
 
     /**
@@ -129,16 +130,16 @@ sap.ui.define([
      * @param {string} method 方法
      * @param {string} sPath 路径
      * @param {object} oData 请求体
-     * @param {RequestParam} mParameters 请求参数
+     * @param {RequestParam} oParameters 请求参数
      * @returns {Promise<RequestReturn>} 返回值
      */
-    HttpModel.prototype._handleRequest = async function (method, sPath, oData, mParameters) {
-        let sUrl = this.vServiceUrl + this.resolve(sPath, mParameters?.context);
+    HttpModel.prototype._handleRequest = async function (method, sPath, oData, oParameters) {
+        let sUrl = this.vServiceUrl + this.resolve(sPath, oParameters?.context);
 
-        if (mParameters?.urlParameters) {
+        if (oParameters?.urlParameters) {
             //使用`URLSearchParams`处理URL参数，确保参数编码符合标准
             const searchParams = new URLSearchParams();
-            Object.entries(mParameters?.urlParameters).forEach(([k, v]) => { searchParams.append(k, v); });
+            Object.entries(oParameters?.urlParameters).forEach(([k, v]) => { searchParams.append(k, v); });
             sUrl += `?${searchParams}`;
         }
 
@@ -151,16 +152,17 @@ sap.ui.define([
         }
 
         let fetchParams = {
-            headers: mParameters?.headers || {},
+            headers: oParameters?.headers || {},
             body: bodyValue,
             method: method,
-            mode: mParameters?.mode || undefined,
-            credentials: mParameters?.credentials || undefined,
-            cache: mParameters?.cache || undefined,
-            redirect: mParameters?.redirect || undefined,
-            referrer: mParameters?.referrer || undefined,
-            referrerPolicy: mParameters?.referrerPolicy || undefined,
-            integrity: mParameters?.integrity || undefined
+            mode: oParameters?.mode || undefined,
+            credentials: oParameters?.credentials || undefined,
+            cache: oParameters?.cache || undefined,
+            redirect: oParameters?.redirect || undefined,
+            referrer: oParameters?.referrer || undefined,
+            referrerPolicy: oParameters?.referrerPolicy || undefined,
+            integrity: oParameters?.integrity || undefined,
+            signal: oParameters?.signal || undefined
         };
 
         const oRequest = {
@@ -185,7 +187,29 @@ sap.ui.define([
     HttpModel.prototype.sendRequest = async function (oRequest) {
         try {
             const req = await fetch(oRequest.url, oRequest.param);
-            const data = await req.clone().json().catch(() => req.text());
+            const contentType = req.headers.get("Content-Type") || "";
+            const isFile = contentType.includes("application/octet-stream")
+                || contentType.includes("application/pdf")
+                || contentType.includes("image/")
+                || contentType.includes("application/zip");
+            let data;
+            if (isFile) {
+                const contentDisposition = req.headers.get("Content-disposition");
+                let filename = "";
+                if (contentDisposition) {
+                    // 使用正则表达式提取 filename 值（支持带引号和不带引号的情况）
+                    const filenameMatch = contentDisposition.match(/filename[\s*=\s*"]*([^;\n]*)/);
+                    if (filenameMatch && filenameMatch[1]) {
+                        filename = filenameMatch[1].trim().replace(/^"|"$/g, ""); // 去除首尾引号
+                    }
+                }
+                data = {
+                    blob: await req.blob(),
+                    filename: filename
+                }
+            } else {
+                data = await req.clone().json().catch(() => req.text());
+            }
 
             if (!req.ok) {
                 //throw new Error(`HTTP error! Status: ${req.status}, Data: ${data}`);
@@ -194,6 +218,7 @@ sap.ui.define([
 
             return {
                 body: data,
+                req: req,
                 status: req.status,
                 headers: req.headers,
                 ok: req.ok,

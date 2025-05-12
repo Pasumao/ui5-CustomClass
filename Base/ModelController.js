@@ -137,11 +137,14 @@ sap.ui.define([
          * @param {sap.ui.model.Filter[]} [aFilters] filters
          * @returns {object|Array} any
          */
-        async getmodeldata(sModelName, sPath, aFilters) {
+        async getmodeldata(sModelName, sPath = "/", aFilters) {
             const oModel = this.getmodel(sModelName);
 
             if (oModel.isA("sap.ui.model.json.JSONModel")) {
-                return sPath && sPath !== "/" ? oModel.getData()[sPath.slice(1)] : oModel.getData();
+                const bidnList = oModel.bindList(sPath, {}, {}, aFilters);
+                const contexts = bidnList.getContexts();
+                return contexts.map((context) => context.getObject());
+                // return sPath && sPath !== "/" ? oModel.getData()[sPath.slice(1)] : oModel.getData();
             } else if (oModel.isA("sap.ui.model.odata.v2.ODataModel")) {
                 const fGetODatav2 = (aData = [], iSkip = 0) => {
                     return new Promise((resolve, reject) => {
@@ -197,7 +200,7 @@ sap.ui.define([
         /**
          * 设置model的值，只支持jsonmodel
          * @param {string} oModelName model name
-         * @param {any} oData omodeldata
+         * @param {object|Array} oData omodeldata
          * @returns {sap.ui.core.mvc.Controller} this
          */
         setmodeldata(oModelName, oData) {
@@ -242,6 +245,8 @@ sap.ui.define([
 
         /**
          * 对odata的封装，建议使用batch时使用，如果不使用batch，请使用CustomODataModel
+         * 已废弃,请使用Model/CustomODataModel
+         * @deprecated
          */
         _odata: function () {
 

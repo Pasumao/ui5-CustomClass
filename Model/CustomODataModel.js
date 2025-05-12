@@ -1,19 +1,14 @@
 sap.ui.define([
     "./HttpModel",
-    "sap/ui/util/XMLHelper",
-    "sap/ui/model/FilterProcessor",
-    "sap/ui/model/odata/ODataUtils"
+    "sap/ui/util/XMLHelper"
 ], function (
     HttpModel,
-    XMLHelper,
-    FilterProcessor,
-    ODataUtils
+    XMLHelper
 ) {
     "use strict";
 
     /**
      * @class CustomODataModel
-     * @extends HttpModel
      */
     const CustomODataModel = HttpModel.extend("Model.CustomODataModel", {
         metadata: {
@@ -39,10 +34,10 @@ sap.ui.define([
     };
 
     /**
-     * @typedef {Object} RequestParam 请求参数类型
-     * @property {Object<string, any>} [urlParameters] - URL查询参数，键值对自动编码为URL参数
+     * @typedef {object} RequestParam 请求参数类型
+     * @property {Record<string, any>} [urlParameters] - URL查询参数，键值对自动编码为URL参数
      * @property {Object} [context] - 绑定请求的上下文对象
-     * 
+     * @property {AbortSignal} [signal] - 请求信号
      * @property {Object<string, string>} [headers] - HTTP请求头配置（Fetch headers）
      * @property {string} [mode] - 请求模式，默认为`cors`
      * @property {string} [credentials] - 身份验证模式，默认为`omit`（可选值：omit/same-origin/include）
@@ -55,7 +50,7 @@ sap.ui.define([
 
     /**
      * @typedef {Object} RequestReturn 请求返回值类型
-     * @property {Object<string|object|Array>} [body] - 返回体
+     * @property {string|object|Array} [body] - 返回体
      * @property {Headers} headers - HTTP请求头配置
      * @property {string} status - HTTP状态码
      * @property {object} [error] - 错误信息
@@ -71,11 +66,14 @@ sap.ui.define([
     /**
      * 发送GET请求
      * @param {string} sPath 路径
-     * @param {RequestParam} oParameters 参数
+     * @param {object} [oParameters] 参数 RequestParam
      * @returns {Promise<Array|string>} 请求结果
      */
     CustomODataModel.prototype.GET = async function (sPath, oParameters) {
         const oReq = await this._req("GET", sPath, undefined, oParameters);
+        if (oReq.error) {
+            return oReq.error;
+        }
         if (oReq.body.d) {
             return oReq.body.d.results;
         }
@@ -88,11 +86,14 @@ sap.ui.define([
      * @override
      * @param {string} sPath 请求路径
      * @param {object} oData 请求体
-     * @param {RequestParam} [oParameters] 请求参数
+     * @param {object} [oParameters] 请求参数
      * @returns {Promise<RequestReturn>} 请求结果
      */
     CustomODataModel.prototype.POST = async function (sPath, oData, oParameters) {
         const oReq = await this._req("POST", sPath, oData, oParameters);
+        if (oReq.error) {
+            return oReq.error;
+        }
         return oReq;
     };
 
@@ -101,11 +102,14 @@ sap.ui.define([
      * @public
      * @override
      * @param {string} sPath 请求路径
-     * @param {RequestParam} [oParameters] 请求参数
+     * @param {object} [oParameters] 请求参数
      * @returns {Promise<RequestReturn>} 请求结果
      */
     CustomODataModel.prototype.DELETE = async function (sPath, oParameters) {
         const oReq = await this._req("DELETE", sPath, undefined, oParameters);
+        if (oReq.error) {
+            return oReq.error;
+        }
         return oReq;
     };
 
@@ -115,11 +119,14 @@ sap.ui.define([
      * @override
      * @param {string} sPath 请求路径
      * @param {object} oData 请求体
-     * @param {RequestParam} [oParameters] 请求参数
+     * @param {object} [oParameters] 请求参数
      * @returns {Promise<RequestReturn>} 请求结果
      */
     CustomODataModel.prototype.PUT = async function (sPath, oData, oParameters) {
         const oReq = await this._req("PUT", sPath, oData, oParameters);
+        if (oReq.error) {
+            return oReq.error;
+        }
         return oReq;
     };
 
@@ -129,11 +136,14 @@ sap.ui.define([
      * @override
      * @param {string} sPath 请求路径
      * @param {object} oData 请求体
-     * @param {RequestParam} [oParameters] 请求参数
+     * @param {object} [oParameters] 请求参数
      * @returns {Promise<RequestReturn>} 请求结果
      */
     CustomODataModel.prototype.PATCH = async function (sPath, oData, oParameters) {
         const oReq = await this._req("PATCH", sPath, oData, oParameters);
+        if (oReq.error) {
+            return oReq.error;
+        }
         return oReq;
     };
 
@@ -143,16 +153,9 @@ sap.ui.define([
      * @param {string} sPath 请求路径
      * @param {object} oData 请求体
      * @param {RequestParam} oParameters 请求参数 
-     * @returns {RequestReturn} return
+     * @returns {Promise<RequestReturn>} return
      */
     CustomODataModel.prototype._req = async function (sMethod, sPath, oData, oParameters) {
-        // //处理filters
-        // if (oParameters.filters && oParameters.filters.length > 0) {
-        //     var oFilter = FilterProcessor.groupFilters(oParameters.filters)
-        //     var sFilter = ODataUtils.createFilterParams(oFilter);
-        //     oParameters.urlParameters["$filter"] = sFilter.slice(8);
-        // }
-
         const oReq = await this._handleRequest(sMethod, sPath, oData, oParameters);
         const xml = XMLHelper.parse(oReq.body);
         // eslint-disable-next-line fiori-custom/sap-no-hardcoded-url

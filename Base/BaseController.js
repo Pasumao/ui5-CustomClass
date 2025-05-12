@@ -2,18 +2,23 @@
 sap.ui.define([
     "./ModelController",
     "../Unit/ValueHelpDialog",
-    "../Control/Debugger"
+    "../Control/Debugger",
+    "sap/ui/core/EventBus",
+    "../Unit/FragmentEvent"
 ], function (
     Controller,
     ValueHelpDialog,
-    Debugger) {
+    Debugger,
+    EventBus,
+    FragmentEvent
+) {
     "use strict";
 
-    return Controller.extend("app.controller.Base.BaseController", {
+    return Controller.extend("Base.BaseController", {
         _bind() {           //绑定this的元素
             Controller.prototype._bind.apply(this, arguments);
             this.Router = this.getOwnerComponent().getRouter();
-            this.EventBus = this.getOwnerComponent().getEventBus();
+            this.EventBus = EventBus.getInstance();
             this.EventLoop = [];
             // window.c = this;
             // eslint-disable-next-line fiori-custom/sap-no-global-define
@@ -50,6 +55,15 @@ sap.ui.define([
         },
 
         /**
+         * FragmentEvent用的简便方法，详情参考Unit/FragmentEvent文件
+         * @param {string} name 
+         * @param {Function} callback 
+         */
+        h(name, callback) {
+            this.EventBus.subscribe("fragment", name, FragmentEvent.h(callback));
+        },
+
+        /**
          * valuehelp的调用方法，如果要处理数据可以照着写
          * @param {sap.ui.base.Event} oEvent oEvent
          */
@@ -63,9 +77,11 @@ sap.ui.define([
         },
 
         /**
-         * 自动调整列宽的方法，主要增加了对input类的支持，原生方法不支持input类的自动调整宽度
+         * 自动调整列宽的方法，增加了对sap.m.InputBase的列宽调整
+         * sap.ui.table.Column上可以使用data:maxWidth="100px"来设置最大宽度,目前只支持px宽度单位
+         * sap.ui.table.Column上可以使用data:addWidth="10px"来自动计算完宽度后添加宽度
          * @public
-         * @param {sap.ui.table.Table | oEvent} oTable table控件实例
+         * @param {sap.ui.table.Table|sap.ui.base.Event} oEvent table控件实例
          */
         __autoWidthTable(oEvent) {
             let oTable;
@@ -76,26 +92,54 @@ sap.ui.define([
             }
             const aColumns = oTable.getColumns();
 
+            function measureTextWidth(text, font) {
+                const canvas = document.createElement('canvas');
+                const context = canvas.getContext('2d');
+                context.font = font;
+                return context.measureText(text).width;
+            }
+
             aColumns.forEach(column => {
                 try {
                     column.autoResize();
-                    let sWight = column.getWidth();
-                    if (!column.getTemplate().getItems) {
-                        return;
+                    let width = Number(column.getWidth().split("px")[0]);
+                    if (column.getTemplate().isA("sap.m.InputBase")) {
+                        const aInputs = column._mTemplateClones.Standard
+                        const aWidth = aInputs.map(i => {
+                            const oInputDom = i.getDomRef().querySelector("input");
+                            const text = oInputDom.value || oInputDom.placeholder || "";
+                            if (!text) { return 0; }
+                            const font = window.getComputedStyle(oInputDom).font;
+                            const textWidth = measureTextWidth(text, font);
+                            if (i.mAggregations._endIcon) { textWidth += 32; }
+                            if (i.mAggregations._beginIcon) { textWidth += 32; }
+                            return textWidth;
+                        })
+
+                        let iWidth = Math.max(...aWidth);
+                        if (iWidth === 0) { return; }
+                        const oTableElement = oTable.getDomRef();
+                        const iTableWidth = oTableElement.querySelector('.sapUiTableCnt').getBoundingClientRect().width;
+                        iWidth = Math.min(iWidth, iTableWidth); // no wider as the table
+                        iWidth = Math.max(iWidth, 10); // not too small
+                        width = iWidth + 36
                     }
-                    let aTemplates = column.getTemplate().getItems();
-                    let oTemplate = aTemplates[1];
 
-                    sWight = sWight.split("px")[0];
-                    sWight = Number(sWight);
-                    sWight += 20;
+                    if (column.data("addWidth")) {
+                        let addWidth = column.data("addWidth").split("px")[0];
+                        addWidth = Number(addWidth);
+                        width += addWidth;
+                    }
 
-                    if (oTemplate.mAggregations._endIcon) { sWight += 32; }
-                    if (sWight > 300) { sWight = 300; }
+                    if (column.data("maxWidth")) {
+                        let maxWidth = column.data("maxWidth").split("px")[0];
+                        if (width > Number(maxWidth)) {
+                            width = Number(maxWidth);
+                        }
+                    }
 
-                    sWight = String(sWight) + "px";
-                    column.setWidth(sWight);
-                } catch {
+                    column.setWidth(width + "px");
+                } catch (e) {
                     return;
                 }
             });
@@ -272,7 +316,7 @@ sap.ui.define([
                         }
                     }),
                     endButton: new sap.m.Button({
-                        text: "cancel",
+                        text: "Cancel",
                         press: () => {
                             oDialog.close();
                             reject();
