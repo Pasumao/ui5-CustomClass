@@ -122,7 +122,7 @@ sap.ui.define([
                         const iTableWidth = oTableElement.querySelector('.sapUiTableCnt').getBoundingClientRect().width;
                         iWidth = Math.min(iWidth, iTableWidth); // no wider as the table
                         iWidth = Math.max(iWidth, 10); // not too small
-                        width = iWidth + 34
+                        width = iWidth + 36
                     }
 
                     if (column.data("addWidth")) {
