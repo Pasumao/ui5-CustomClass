@@ -20,7 +20,6 @@ sap.ui.define([
             this.Router = this.getOwnerComponent().getRouter();
             this.EventBus = EventBus.getInstance();
             this.EventLoop = [];
-            // window.c = this;
             // eslint-disable-next-line fiori-custom/sap-no-global-define
             window.Debugger = new Debugger({ this: this, visible: false });
         },
