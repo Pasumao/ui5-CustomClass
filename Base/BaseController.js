@@ -79,6 +79,7 @@ sap.ui.define([
          * 自动调整列宽的方法，增加了对sap.m.InputBase的列宽调整
          * sap.ui.table.Column上可以使用data:maxWidth="100px"来设置最大宽度,目前只支持px宽度单位
          * sap.ui.table.Column上可以使用data:addWidth="10px"来自动计算完宽度后添加宽度
+         * sap.ui.table.Column上可以使用data:minWidth="10px"来设定最小宽度,目前只支持px宽度单位
          * sap.ui.table.Column上可以使用data:noWidth="true"来禁止自动调整列宽
          * @public
          * @param {sap.ui.table.Table|sap.ui.base.Event} oEvent table控件实例
@@ -136,6 +137,13 @@ sap.ui.define([
                         let maxWidth = column.data("maxWidth").split("px")[0];
                         if (width > Number(maxWidth)) {
                             width = Number(maxWidth);
+                        }
+                    }
+
+                    if (column.data("minWidth")) {
+                        let minWidth = column.data("minWidth").split("px")[0];
+                        if (width < Number(minWidth)) {
+                            width = Number(minWidth);
                         }
                     }
 
