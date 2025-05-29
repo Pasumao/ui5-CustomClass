@@ -8,10 +8,40 @@ sap.ui.define([
     const PropertyController = Control.extend("Control.xml.PropertyController", {
         metadata: {
             properties: {
+
+                /** 
+                 * 绑定的值
+                 * @type {string | object}
+                 * 如果绑定的值为对象，则使用对象中的指定属性进行判断
+                 * 如果是字符串，则使用字符串进行判断
+                 */
                 value: { type: "string", bindable: "bindable" },
+
+                /** 
+                 * 改变的控件参数
+                 * @type {string} 参考文档中的控件Properties
+                 */
                 changeProperty: { type: "string", defaultValue: "enabled" },
+
+                /** 
+                 * 监听的属性
+                 * @type {string}
+                 */
                 listen: { type: "string", bindable: "bindable" },
+
+                /** 
+                 * 值是否取反
+                 * @type {boolean}
+                 * 默认为如果监听值和value取等则设置为正
+                 */
                 negate: { type: "boolean", defaultValue: false },
+
+                /** 
+                 * 绑定的sap.ui.table.Table控件的ID
+                 * @type {sap.ui.core.ID}
+                 * 如果绑定table会根据是否选中行输出true和false，支持取反
+                 * 选定table会给table控件添加事件
+                 */
                 gridTableId: { type: "sap.ui.core.ID" }
             }
         },
@@ -44,7 +74,8 @@ sap.ui.define([
     });
 
     /**
-     * 获取表格
+     * 获取table控件
+     * @private
      * @param {sap.ui.core.ID} sId 表格ID
      * @returns {sap.ui.table.Table} 表格实例
      */
