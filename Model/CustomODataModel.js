@@ -172,7 +172,8 @@ sap.ui.define([
 
             oReq.error = {
                 code: codeNode ? codeNode.textContent : "",
-                message: messageNode ? messageNode.textContent : ""
+                message: messageNode ? messageNode.textContent : "",
+                error: true
             };
         }
         return oReq;
