@@ -76,6 +76,56 @@ sap.ui.define([
         },
 
         /**
+         * 下载的模板方法，也可直接调用
+         * @param {object[]} aFiles 
+         * @returns o 下载的成功与否
+         */
+        async Download(aFiles) {
+            let directoryHandle;
+            if (window.showDirectoryPicker) {
+                directoryHandle = await window.showDirectoryPicker({
+                    mode: "readwrite",
+                    startIn: "downloads"
+                })
+            }
+            const _down = async (oData) => {
+                try {
+                    if (directoryHandle) {
+                        const fileHandle = await directoryHandle.getFileHandle(`${oData.fileName}.${oData.fileType}`, { create: true });
+                        const writable = await fileHandle.createWritable();
+
+                        await writable.write(oData.FileData);
+                        await writable.close();
+                    } else {
+                        const a = document.createElement("a");
+                        a.href = URL.createObjectURL(oData.FileData);
+                        a.download = req.filename;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(a.href);
+                    }
+                    return {
+                        fileName: oData.fileName,
+                        fileType: oData.fileType,
+                        success: true
+                    }
+                } catch (error) {
+                    return {
+                        fileName: oData.fileName,
+                        fileType: oData.fileType,
+                        success: false,
+                        error: error
+                    }
+                }
+            }
+
+            const aPromise = aFiles.map(async (oFile) => _down(oFile));
+            await Promise.all(aPromise);
+            return aPromise;
+        },
+
+        /**
          * 自动调整列宽的方法，增加了对sap.m.InputBase的列宽调整
          * sap.ui.table.Column上可以使用data:maxWidth="100px"来设置最大宽度,目前只支持px宽度单位
          * sap.ui.table.Column上可以使用data:addWidth="10px"来自动计算完宽度后添加宽度
