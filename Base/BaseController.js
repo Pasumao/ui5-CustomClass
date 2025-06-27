@@ -4,13 +4,15 @@ sap.ui.define([
     "../Unit/ValueHelpDialog",
     "../Control/Debugger",
     "sap/ui/core/EventBus",
-    "../Unit/FragmentEvent"
+    "../Unit/FragmentEvent",
+    "../Unit/Lodash"
 ], function (
     Controller,
     ValueHelpDialog,
     Debugger,
     EventBus,
-    FragmentEvent
+    FragmentEvent,
+    _
 ) {
     "use strict";
 
@@ -20,6 +22,7 @@ sap.ui.define([
             this.Router = this.getOwnerComponent().getRouter();
             this.EventBus = EventBus.getInstance();
             this.EventLoop = [];
+            this._debounceList = [];
             // eslint-disable-next-line fiori-custom/sap-no-global-define
             window.Debugger = new Debugger({ this: this, visible: false });
         },
@@ -53,6 +56,8 @@ sap.ui.define([
             }, 0);
         },
 
+        _: _,
+
         /**
          * FragmentEvent用的简便方法，详情参考Unit/FragmentEvent文件
          * @param {string} name 
@@ -64,15 +69,44 @@ sap.ui.define([
 
         /**
          * valuehelp的调用方法，如果要处理数据可以照着写
+         * 增加了防抖
          * @param {sap.ui.base.Event} oEvent oEvent
          */
-        async onMultiInputValueHelpRequest(oEvent) {
+        onMultiInputValueHelpRequest: function (oEvent) {
+            const vhfunction = () => {
+                const oControl = oEvent.getSource();
+                const oProperties = oControl.data("valuehelp");
+
+                // 原始业务逻辑
+                ValueHelpDialog.open(oEvent, JSON.parse(JSON.stringify(oProperties)), this);
+
+                // 保留原始超时释放逻辑
+                setTimeout(() => {
+                    oControl.setBusy(false);
+                }, 5000);
+            }
             const oControl = oEvent.getSource();
-            const oProperties = oControl.data("valuehelp");
-            ValueHelpDialog.open(oEvent, JSON.parse(JSON.stringify(oProperties)), this);
-            setTimeout(() => {
-                oControl.setBusy(false);
-            }, 5000);
+            const sId = oControl.getId();
+            let debouncedSearch;
+
+            // 查找已存在的防抖函数
+            const existingDebounce = this._debounceList.find(item => item.id === sId && item.mark === 'vh');
+
+            if (!existingDebounce) {
+                // 创建新的防抖函数并绑定正确的this
+                debouncedSearch = _.debounce(vhfunction.bind(this), 500, { leading: true });
+
+                this._debounceList.push({
+                    id: sId,
+                    mark: 'vh',
+                    obj: debouncedSearch
+                });
+            } else {
+                debouncedSearch = existingDebounce.obj;
+            }
+
+            // 直接调用防抖函数（无需传递oEvent）
+            debouncedSearch();
         },
 
         /**
