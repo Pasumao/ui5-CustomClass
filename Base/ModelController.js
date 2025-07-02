@@ -291,7 +291,7 @@ sap.ui.define([
                         model.read(sPath, {
                             filters: aFilters ?? [],
                             urlParameters: mParameter,
-                            success: mParameter?.fnSuccess ?? ((oData, oResponse) => {
+                            success: ((oData, oResponse) => {
                                 if (oData.results) {
                                     resolve(oData.results);
                                 }
@@ -299,7 +299,7 @@ sap.ui.define([
                                     resolve(oData);
                                 }
                             }),
-                            error: mParameter?.fnError ?? ((error) => {
+                            error: ((error) => {
                                 if (error.statusCode === 200 && error.responseText) {
                                     resolve(error.responseText);
                                 } else {
@@ -322,7 +322,7 @@ sap.ui.define([
                     return new Promise((resolve, reject) => {
                         model.create(sPath, mData, {
                             urlParameters: mParameter,
-                            success: mParameter?.fnSuccess ?? ((oData, oResponse) => {
+                            success: ((oData, oResponse) => {
                                 if (oData.results) {
                                     resolve(oData.results);
                                 }
@@ -330,7 +330,7 @@ sap.ui.define([
                                     resolve(oData);
                                 }
                             }),
-                            error: mParameter?.fnError ?? ((error) => {
+                            error: ((error) => {
                                 if (error.statusCode === 200 && error.responseText) {
                                     resolve(error.responseText);
                                 } else {
@@ -352,7 +352,7 @@ sap.ui.define([
                     return new Promise((resolve, reject) => {
                         model.remove(sPath, {
                             urlParameters: mParameter,
-                            success: mParameter?.fnSuccess ?? ((oData, oResponse) => {
+                            success: ((oData, oResponse) => {
                                 if (oData.results) {
                                     resolve(oData.results);
                                 }
@@ -360,7 +360,7 @@ sap.ui.define([
                                     resolve(oData);
                                 }
                             }),
-                            error: mParameter?.fnError ?? ((error) => {
+                            error: ((error) => {
                                 if (error.statusCode === 200 && error.responseText) {
                                     resolve(error.responseText);
                                 } else {
@@ -384,7 +384,7 @@ sap.ui.define([
                     return new Promise((resolve, reject) => {
                         model.update(sPath, mData, {
                             urlParameters: mParameter,
-                            success: mParameter?.fnSuccess ?? ((oData, oResponse) => {
+                            success: ((oData, oResponse) => {
                                 if (oData.results) {
                                     resolve(oData.results);
                                 }
@@ -392,7 +392,7 @@ sap.ui.define([
                                     resolve(oData);
                                 }
                             }),
-                            error: mParameter?.fnError ?? ((error) => {
+                            error: ((error) => {
                                 if (error.statusCode === 200 && error.responseText) {
                                     resolve(error.responseText);
                                 } else {
