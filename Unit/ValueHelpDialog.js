@@ -242,7 +242,7 @@ sap.ui.define([
                                             supportRanges: true,
                                             supportRangesOnly: true,
                                             key: "range"
-                                        })
+                                        }, this._oController)
                                     });
                                     oMultiInput.addValidator(this._oController.Validator("range"));
                                     return oMultiInput;
