@@ -141,10 +141,18 @@ sap.ui.define([
             const oModel = this.getmodel(sModelName);
 
             if (oModel.isA("sap.ui.model.json.JSONModel")) {
+                function _getData(bindList, iStart) {
+                    const contexts = bindList.getContexts(iStart, 100);
+                    let data = contexts.map((context) => context.getObject());
+                    if (contexts.length === 100) {
+                        data = [...data, ..._getData(bindList, iStart + 100)]
+                    }
+                    return data;
+                }
                 const bindList = oModel.bindList(sPath, {}, {}, aFilters);
-                return bindList.oList;
-                // const contexts = bindList.getContexts();
-                // return contexts.map((context) => context.getObject());
+                // return bindList.oList;
+                const contexts = bindList.getContexts();
+                return contexts.map((context) => context.getObject());
                 // return sPath && sPath !== "/" ? oModel.getData()[sPath.slice(1)] : oModel.getData();
             } else if (oModel.isA("sap.ui.model.odata.v2.ODataModel")) {
                 const fGetODatav2 = (aData = [], iSkip = 0) => {
