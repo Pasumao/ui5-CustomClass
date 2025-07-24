@@ -519,6 +519,8 @@ sap.ui.define([
         if (oVH) {
             if (oVH._oProperties.table && oVH._oProperties.table.refresh) {
                 oControl.setBusy(true);
+                oController._processObject(oProperties, oEvent);
+                oVH.setProperty(oProperties)
                 oVH.initDialog().then(function () {
                     oControl.setBusy(false);
                 }).finally(function () {
