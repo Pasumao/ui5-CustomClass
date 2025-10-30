@@ -11,6 +11,9 @@ sap.ui.define([
             properties: {
                 active: { type: "boolean", defaultValue: false },
                 parent: { type: "object" }
+            },
+            events: {
+                beforeOpen: {}
             }
         },
 
@@ -42,6 +45,8 @@ sap.ui.define([
         const parentId = this.getParent()?.getId();
         const parentDom = $("#" + parentId)[0];
         this._oSelectedControl = target2Control(target);
+
+        this.fireBeforeOpen();
 
         if (this.oDom) {
             $(this.oDom).remove();

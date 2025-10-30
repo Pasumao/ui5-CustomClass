@@ -120,7 +120,7 @@ sap.ui.define([
      * @returns {this} this
      */
     TreeModel.prototype.addChild = function (targetId, oNode) {
-        const parentNode = this.getNodeParent(targetId);
+        const parentNode = this.getNode(targetId);
         if (parentNode) {
             parentNode.children.push(oNode);
             this.setNodeProperty(targetId, "children", parentNode.children);
