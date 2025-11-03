@@ -104,9 +104,9 @@ sap.ui.define([
             if (oTreeData[i].children && oTreeData[i].children.length > 0) {
                 sPath = sPath + "/children";
                 const foundPath = this.getNodePath(targetId, oTreeData[i].children, sPath);
+                sPath = sPath.slice(0, sPath.lastIndexOf("/children"));
                 if (foundPath) { return foundPath; }
             }
-            sPath = sPath.slice(0, sPath.lastIndexOf("/children"));
             sPath = sPath.slice(0, sPath.lastIndexOf("/"));
         }
         return undefined;
