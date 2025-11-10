@@ -23,6 +23,7 @@ sap.ui.define([
             oRm.openEnd();
 
             const aContents = oControl.getAggregation("content");
+            if (!aContents) return;
             aContents.forEach((oCase) => {
                 if (oCase.isA("Control.xml.Case")) {
                     oControl.addAggregation("cases", oCase);

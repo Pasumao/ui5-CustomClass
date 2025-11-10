@@ -9,7 +9,9 @@ sap.ui.define([
         renderer: function (oRm, oControl) {
             oRm.openStart("div", oControl);
             oRm.openEnd();
-            oControl.getAggregation("content").forEach(element => {
+            const aContents = oControl.getAggregation("content")
+            if (!aContents) return;
+            aContents.forEach(element => {
                 oRm.renderControl(element);
             });
             oRm.close("div");
