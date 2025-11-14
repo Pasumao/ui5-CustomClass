@@ -14,8 +14,7 @@ sap.ui.define([
             aggregations: {
                 content: { type: "Control.Base.CaseBase", multiple: true },
                 cases: { type: "Control.xml.Case", multiple: true },
-                default: { type: "Control.xml.Default", multiple: false },
-                output: { type: "Control.Base.CaseBase", multiple: false }
+                default: { type: "Control.xml.Default", multiple: false }
             },
         },
 
@@ -36,20 +35,11 @@ sap.ui.define([
             const value = String(oControl.getValue())
             const aCases = oControl.getAggregation("cases");
             var renderControl = oControl.getAggregation("default");
-            if (!renderControl) {
-                renderControl = oControl.getAggregation("output");
-            }
             for (const oCase of aCases) {
                 if (value === oCase.getValue()) {
                     renderControl = oCase;
                     break;
                 }
-            }
-
-            const oOutput = oControl.getAggregation("output");
-            if (oOutput && oOutput !== renderControl) {
-                oControl.setAggregation("output", renderControl);
-                oControl.setAggregation("default", oOutput);
             }
 
             oRm.renderControl(renderControl);
