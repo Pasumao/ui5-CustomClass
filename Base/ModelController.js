@@ -247,7 +247,7 @@ sap.ui.define([
             const data = model.getProperty(sPath) || [];
             if (iIndex >= 0 && iIndex < data.length) {
                 let poped = data.splice(iIndex, 1);
-                model.setProperty(sPath, poped);
+                model.setProperty(sPath, data);
             }
             return this;
         },
