@@ -239,7 +239,7 @@ sap.ui.define([
          * 根据索引从数组中移除指定项
          * @param {string} sModelName 模型名称
          * @param {string} sPath 数组路径
-         * @param {number} iIndex 要删除的索引位置
+         * @param {number} [iIndex] 要删除的索引位置
          * @returns {sap.ui.core.mvc.Controller} this
          */
         popmodeldata: function (sModelName, sPath, iIndex) {
