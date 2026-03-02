@@ -56,7 +56,7 @@ sap.ui.define([
         if (parentDom.contains(target)) {
             oEvent.preventDefault();
 
-            const domId = 'CC_ContextMenu_' + Date.now();  // 确保ID唯一
+            const domId = 'CC_ContextMenu_' + Date.now();
             this.oDom = document.createElement('div');
             this.oDom.id = domId;
             this.oDom.style.cssText = 'position:absolute;top:' + oEvent.clientY + 'px;left:' + oEvent.clientX + 'px;width:0;height:0;opacity:0';
