@@ -134,8 +134,10 @@ sap.ui.define([
         }
         // 检测是否为select_one模式
         if (this._oProperties.select_one) {
-            this._oProperties.table.selectionMode = SelectionMode.Single;
-            this._oProperties.table.selectionBehavior = SelectionBehavior.RowOnly;
+            if (this._oProperties.table) {
+                this._oProperties.table.selectionMode = SelectionMode.Single;
+                this._oProperties.table.selectionBehavior = SelectionBehavior.RowOnly;
+            }
             this._oProperties.supportMultiselect = true;
             this._oProperties.maxConditions = 1;
             this._mode = "single";
@@ -429,15 +431,22 @@ sap.ui.define([
             }
         }
 
-        if (aTokens.length === 0) {
-            this._oControl.setValue("");
-        } else {
-            this._oControl.setValue(aTokens[0].getKey());
-        }
-
         if (this._oControl.isA("sap.m.MultiInput")) {
+            this._oControl.setTokens(aTokens.map(token => {
+                if (token.data("range")) {
+                    return token.setProperty("text", token.mAggregations.tooltip)
+                        .setProperty("key", token.data("range").value1);
+                } else {
+                    return token.setProperty("text", "=" + token.getProperty("key"));
+                }
+            }));
             this._oControl.fireTokenUpdate();
         } else if (this._oControl.isA("sap.m.Input")) {
+            if (aTokens.length === 0) {
+                this._oControl.setValue("");
+            } else {
+                this._oControl.setValue(aTokens[0].getText());
+            }
             this._oControl.fireChange();
         }
         this._oDialog.close();
@@ -454,9 +463,8 @@ sap.ui.define([
 
         this._oControl.setTokens(aTokens.map(token => {
             if (token.data("range")) {
-                // eslint-disable-next-line fiori-custom/sap-no-ui5base-prop
                 return token.setProperty("text", token.mAggregations.tooltip)
-                    .setProperty("key", token.data("range").value1);    //toUTCString()
+                    .setProperty("key", token.data("range").value1);
             } else {
                 return token.setProperty("text", "=" + token.getProperty("key"));
             }
