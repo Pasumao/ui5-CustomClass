@@ -31,6 +31,22 @@ sap.ui.define([
      */
 
     /**
+     * @typedef CellData
+     * @property {string} row_key 行唯一标识
+     * @property {string} col_key 列唯一标识
+     * @property {string} value 单元格值
+     * @property {boolean} [editable] 是否可编辑
+     * @property {boolean} [is_formula] 是否为公式
+     */
+
+    /**
+     * @typedef FormulaConfig
+     * @property {string} row_key 公式所在行
+     * @property {string} col_key 公式所在列
+     * @property {string} formula 公式字符串
+     */
+
+    /**
      * 这是一个sap.ui.table.Table的控制器类，可以把表展示为2D表
      */
     const Table2DController = Object.extend("Unit.Table2DController", {
@@ -48,9 +64,8 @@ sap.ui.define([
 
             this._fdataMap = new Map();
             this._dataMap = new Map();
-            this._formulaMap = new Map();
             // 存储每个公式的层级和依赖信息
-            this._formulaInfo = new Map();
+            this._formulaMap = new Map();
 
             /**  @type {ExtraColumnConfig[]} extraColumnConfigs 额外的列配置 */
             this._extraColumnConfig = [];
@@ -135,8 +150,9 @@ sap.ui.define([
                     return;
                 }
                 const path = `/${cellRow}/${cellCol}`
-
-                this.changeCellData(cellRow, cellCol, cell)
+                if (!this.oModel.getProperty(path + "/is_formula")) {
+                    this.changeCellData(cellRow, cellCol, cell)
+                }
             })
         })
         this.render()
@@ -151,15 +167,6 @@ sap.ui.define([
     }
 
     /**
-     * @typedef CellData
-     * @property {string} row_key 行唯一标识
-     * @property {string} col_key 列唯一标识
-     * @property {string} value 单元格值
-     * @property {boolean} [editable] 是否可编辑
-     * @property {boolean} [is_formula] 是否为公式
-     */
-
-    /**
      * 设置单元格数据
      * @param {CellData[]} cellData 单元格数据
      */
@@ -170,21 +177,13 @@ sap.ui.define([
     }
 
     /**
-     * @typedef FormulaConfig
-     * @property {string} row_key 公式所在行
-     * @property {string} col_key 公式所在列
-     * @property {string} formula 公式字符串
-     */
-
-    /**
      * 设置公式
      * @param {FormulaConfig[]} aFormulaData 公式配置
      */
     Table2DController.prototype.setFormulaConfigs = function (aFormulaConfig) {
         aFormulaConfig.forEach(f => {
             const sCell = `${f.row_key}.${f.col_key}`
-            this._formulaMap.set(sCell, f.formula);
-            this._formulaInfo.set(sCell, {
+            this._formulaMap.set(sCell, {
                 formula: f.formula,
                 level: -1, // -1 表示未计算/未知层级
                 dependencies: this._extractDependencies(f.formula)
@@ -205,67 +204,129 @@ sap.ui.define([
         return matches ? [...new Set(matches)] : []; // 去重
     }
 
+    // /**
+    //  * 计算公式层级
+    //  */
+    // Table2DController.prototype._calculateLevels = function () {
+    //     let remainingFormulas = new Set(this._formulaMap.keys());
+    //     let hasProgress = true;
+
+    //     // 循环直到所有公式都分配了层级，或者发现循环依赖（无进展）
+    //     while (remainingFormulas.size > 0 && hasProgress) {
+    //         hasProgress = false;
+    //         const toRemove = [];
+
+    //         for (const cellId of remainingFormulas) {
+    //             const info = this._formulaMap.get(cellId);
+    //             const deps = info.dependencies;
+
+    //             // 检查依赖是否都已解决
+    //             const allDepsResolved = deps.every(dep => {
+    //                 // 依赖是初始数据 OR 依赖是已经计算出层级的公式
+    //                 return this._dataMap.has(dep)
+    //                     || (this._formulaMap.has(dep) && this._formulaMap.get(dep).level !== -1)
+    //                     || (!this._formulaMap.has(dep) && !this._dataMap.has(dep))
+    //             });
+
+    //             if (allDepsResolved) {
+    //                 // 计算当前公式的层级 = 依赖项中的最大层级 + 1
+    //                 // 如果依赖全是初始数据，maxDepLevel 为 0，则当前为 1
+    //                 let maxDepLevel = 0;
+
+    //                 deps.forEach(dep => {
+    //                     if (this._formulaMap.has(dep)) {
+    //                         const depLevel = this._formulaMap.get(dep).level;
+    //                         if (depLevel > maxDepLevel) {
+    //                             maxDepLevel = depLevel;
+    //                         }
+    //                     }
+    //                 });
+
+    //                 info.level = maxDepLevel + 1;
+    //                 // this._formulaMap.set(cellId, info);
+    //                 toRemove.push(cellId);
+    //                 hasProgress = true;
+    //             }
+    //         }
+
+    //         // 移除已分层的公式
+    //         toRemove.forEach(id => remainingFormulas.delete(id));
+    //     }
+
+    //     if (remainingFormulas.size > 0) {
+    //         console.error("检测到循环依赖或无法解析的引用:", Array.from(remainingFormulas));
+    //         throw new Error(`公式存在循环依赖或缺少数据: ${Array.from(remainingFormulas).join(', ')}`);
+    //     }
+    // }
+
     /**
-     * 计算公式层级
+     * 优化后的层级计算 (使用 Kahn 算法)
      */
     Table2DController.prototype._calculateLevels = function () {
-        let remainingFormulas = new Set(this._formulaMap.keys());
-        let hasProgress = true;
+        const inDegree = new Map(); // 存储每个节点的入度
+        const graph = new Map();    // 邻接表: key -> [被依赖的节点列表]
+        const allNodes = Array.from(this._formulaMap.keys());
 
-        // 循环直到所有公式都分配了层级，或者发现循环依赖（无进展）
-        while (remainingFormulas.size > 0 && hasProgress) {
-            hasProgress = false;
-            const toRemove = [];
+        // 初始化
+        allNodes.forEach(node => {
+            inDegree.set(node, 0);
+            graph.set(node, []);
+        });
 
-            for (const cellId of remainingFormulas) {
-                const info = this._formulaInfo.get(cellId);
-                const deps = info.dependencies;
-
-                // 检查依赖是否都已解决
-                const allDepsResolved = deps.every(dep => {
-                    // 依赖是初始数据 OR 依赖是已经计算出层级的公式
-                    return this._dataMap.has(dep)
-                        || (this._formulaInfo.has(dep) && this._formulaInfo.get(dep).level !== -1)
-                        || (!this._formulaInfo.has(dep) && !this._dataMap.has(dep))
-                });
-
-                if (allDepsResolved) {
-                    // 计算当前公式的层级 = 依赖项中的最大层级 + 1
-                    // 如果依赖全是初始数据，maxDepLevel 为 0，则当前为 1
-                    let maxDepLevel = 0;
-
-                    deps.forEach(dep => {
-                        if (this._formulaInfo.has(dep)) {
-                            const depLevel = this._formulaInfo.get(dep).level;
-                            if (depLevel > maxDepLevel) {
-                                maxDepLevel = depLevel;
-                            }
-                        }
-                    });
-
-                    info.level = maxDepLevel + 1;
-                    // this._formulaInfo.set(cellId, info);
-                    toRemove.push(cellId);
-                    hasProgress = true;
+        // 构建图和入度
+        allNodes.forEach(node => {
+            const info = this._formulaMap.get(node);
+            info.dependencies.forEach(dep => {
+                // 只有当依赖项也是公式时，才建立图关系
+                if (this._formulaMap.has(dep)) {
+                    graph.get(dep).push(node); // dep -> node
+                    inDegree.set(node, inDegree.get(node) + 1);
                 }
+            });
+        });
+
+        // 队列：所有入度为 0 的节点 (没有依赖其他公式，或依赖全是静态数据)
+        const queue = [];
+        allNodes.forEach(node => {
+            if (inDegree.get(node) === 0) {
+                this._formulaMap.get(node).level = 1; // 第一层
+                queue.push(node);
             }
+        });
 
-            // 移除已分层的公式
-            toRemove.forEach(id => remainingFormulas.delete(id));
+        let processedCount = 0;
+        while (queue.length > 0) {
+            const current = queue.shift();
+            processedCount++;
+            const currentLevel = this._formulaMap.get(current).level;
+
+            // 处理当前节点指向的所有节点
+            const neighbors = graph.get(current);
+            neighbors.forEach(neighbor => {
+                const neighborInfo = this._formulaMap.get(neighbor);
+                // 更新邻居的层级：max(当前层级，依赖层级 + 1)
+                neighborInfo.level = Math.max(neighborInfo.level, currentLevel + 1);
+
+                inDegree.set(neighbor, inDegree.get(neighbor) - 1);
+                if (inDegree.get(neighbor) === 0) {
+                    queue.push(neighbor);
+                }
+            });
         }
 
-        if (remainingFormulas.size > 0) {
-            console.error("检测到循环依赖或无法解析的引用:", Array.from(remainingFormulas));
-            throw new Error(`公式存在循环依赖或缺少数据: ${Array.from(remainingFormulas).join(', ')}`);
+        if (processedCount < allNodes.length) {
+            const remaining = allNodes.filter(n => inDegree.get(n) > 0);
+            console.error("检测到循环依赖:", remaining);
+            throw new Error(`公式存在循环依赖: ${remaining.join(', ')}`);
         }
-    }
+    };
 
     /**
      * 执行公式计算
      */
     Table2DController.prototype.excute = function () {
         // 2. 按层级排序公式
-        const sortedFormulas = Array.from(this._formulaInfo.entries()).sort((a, b) => {
+        const sortedFormulas = Array.from(this._formulaMap.entries()).sort((a, b) => {
             return a[1].level - b[1].level;
         });
 
@@ -328,9 +389,7 @@ sap.ui.define([
      * @param {string} value 数据值
      */
     Table2DController.prototype.changeCellData = function (row_key, col_key, value) {
-        if (!this.oModel.getProperty(sPath + "/is_formula")) {
-            this._dataMap.set(`${row_key}.${col_key}`, value)
-        }
+        this._dataMap.set(`${row_key}.${col_key}`, value)
     }
 
     /**
@@ -359,11 +418,12 @@ sap.ui.define([
             }
             this._aColumnConfigs.forEach(col => {
                 let cellValue = this.getCellValue(row.key, col.key)
+                const sCell = `${row.key}.${col.key}`
                 rowData[col.key] = {
                     row: row.key,
                     col: col.key,
-                    is_formula: this._formulaMap.has(`${row.key}.${col.key}`),
-                    editable: Boolean(cellValue.edit) && this._formulaMap.has(`${row.key}.${col.key}`),
+                    is_formula: this._formulaMap.has(sCell),
+                    editable: Boolean(cellValue.edit) && this._formulaMap.has(sCell),
                     value: cellValue.value
                 }
             })
@@ -437,11 +497,12 @@ sap.ui.define([
                 }
                 this._aColumnConfigs.forEach(col => {
                     let cellValue = this.getCellValue(row.key, col.key)
+                    const sCell = `${row.key}.${col.key}`
                     rowData[col.key] = {
                         row: row.key,
                         col: col.key,
-                        is_formula: this._formulaMap.has(`${row.key}.${col.key}`),
-                        editable: Boolean(cellValue.edit) && this._formulaMap.has(`${row.key}.${col.key}`),
+                        is_formula: this._formulaMap.has(sCell),
+                        editable: Boolean(cellValue.edit) && this._formulaMap.has(sCell),
                         value: cellValue.value
                     }
                 })
