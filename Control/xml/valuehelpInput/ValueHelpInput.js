@@ -168,46 +168,46 @@ sap.ui.define([
         return result;
     }
 
-    ValueHelpInput.prototype.setShowSuggestion = function (bShowSuggestion) {
-        this.setProperty("showSuggestion", true);
-        const aSuggestionColumns = this.getSuggestionColumns();
-        if (aSuggestionColumns.length === 0 && bShowSuggestion) {
-            this._setSuggestion()
-        }
-    }
+    // ValueHelpInput.prototype.setShowSuggestion = function (bShowSuggestion) {
+    //     this.setProperty("showSuggestion", true);
+    //     const aSuggestionColumns = this.getSuggestionColumns();
+    //     if (aSuggestionColumns.length === 0 && bShowSuggestion) {
+    //         this._setSuggestion()
+    //     }
+    // }
 
-    ValueHelpInput.prototype._setSuggestion = function () {
-        const aColumnConfig = this.getColumns().map(column => {
-            return column._getColumnConfig();
-        });
+    // ValueHelpInput.prototype._setSuggestion = function () {
+    //     const aColumnConfig = this.getColumns().map(column => {
+    //         return column._getColumnConfig();
+    //     });
 
-        aColumnConfig.forEach((config) => {
-            const oColumn = new Column({
-                popinDisplay: "Inline",
-                header: new Label({
-                    text: config.text
-                }),
-            })
-            this.addSuggestionColumn(oColumn)
-        })
+    //     aColumnConfig.forEach((config) => {
+    //         const oColumn = new Column({
+    //             popinDisplay: "Inline",
+    //             header: new Label({
+    //                 text: config.text
+    //             }),
+    //         })
+    //         this.addSuggestionColumn(oColumn)
+    //     })
 
-        const oColumnListItem = new ColumnListItem({
-            cells: aColumnConfig.map((config) => {
-                return new Label({
-                    text: `{${config.key}`
-                })
-            })
-        })
-        this.addSuggestionRow(oColumnListItem)
-    }
+    //     const oColumnListItem = new ColumnListItem({
+    //         cells: aColumnConfig.map((config) => {
+    //             return new Label({
+    //                 text: `{${config.key}`
+    //             })
+    //         })
+    //     })
+    //     this.addSuggestionRow(oColumnListItem)
+    // }
 
-    ValueHelpInput.prototype.setTableData = function (data) {
-        this.setProperty("tableData", data)
-        const oBindingInfo = this.getBindingInfo("tableData")
-        if (this.getSelectedItem()) {
-            this.bindAggregation("suggestionItems", oBindingInfo)
-        }
-    }
+    // ValueHelpInput.prototype.setTableData = function (data) {
+    //     this.setProperty("tableData", data)
+    //     const oBindingInfo = this.getBindingInfo("tableData")
+    //     if (this.getSelectedItem()) {
+    //         this.bindAggregation("suggestionItems", oBindingInfo)
+    //     }
+    // }
 
     return ValueHelpInput;
 });

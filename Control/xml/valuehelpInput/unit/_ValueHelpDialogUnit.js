@@ -123,6 +123,7 @@ sap.ui.define([
 
             this._oDialog = new UI5ValueHelpDialog({
                 key: this._oProperties.key,
+                title: this._oProperties.title,
                 basicSearchText: this._oProperties.basicSearchText,
                 supportMultiselect: this._oProperties.supportMultiselect,
                 supportRanges: this._oProperties.supportRanges,
