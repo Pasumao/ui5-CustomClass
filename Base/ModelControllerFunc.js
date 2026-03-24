@@ -1,11 +1,13 @@
-/* eslint-disable max-depth */
-/* eslint-disable no-param-reassign */
 sap.ui.define([
-    "sap/ui/core/mvc/Controller"
-], function (Controller) {
+    "sap/ui/core/mvc/Controller",
+    "sap/ui/base/Object"
+], function (
+    Controller,
+    Object
+) {
     "use strict";
 
-    return Controller.extend("Base.ModelController", {
+    return {
         onInit() {
             this._bind();
             this._registerModel();
@@ -460,5 +462,5 @@ sap.ui.define([
                 }
             }
         }
-    });
+    };
 });

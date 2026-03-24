@@ -7,7 +7,7 @@ sap.ui.define([
 	"../Unit/FragmentEvent",
 	"../Unit/Lodash"
 ], function (
-	Controller,
+	ModelController,
 	ValueHelpDialog,
 	Debugger,
 	EventBus,
@@ -16,9 +16,8 @@ sap.ui.define([
 ) {
 	"use strict";
 
-	return Controller.extend("Base.BaseController", {
+	return ModelController.extend("Base.BaseController", {
 		_bind() {           //绑定this的元素
-			Controller.prototype._bind.apply(this, arguments);
 			this.Router = this.getOwnerComponent().getRouter();
 			this.EventBus = EventBus.getInstance();
 			this.EventLoop = [];
