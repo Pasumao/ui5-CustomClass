@@ -520,6 +520,7 @@ sap.ui.define([
      * @param {string[]} [oProperties.filterBar.baseSearchFields] - filterbar的baseSearch检索的字段
      * @param {Range} [oProperties.range] - range页面的参数
      * @param {sap.ui.core.mvc.Controller} oController controller
+     * @deprecated
      */
     ValueHelpDialog.open = function (oEvent, oProperties, oController) {
         const oControl = oEvent.getSource();
@@ -535,6 +536,8 @@ sap.ui.define([
                     oVH.openDialog();
                 });
             }
+            oVH._oDialog.setTokens(oControl.getTokens())
+            oVH._oDialog.update();
             oVH.openDialog();
         } else {
             var oValueHelpDialog = new ValueHelpDialog(oEvent, oController);
@@ -545,6 +548,8 @@ sap.ui.define([
                 oValueHelpDialog._oControl.setBusy(false);
                 oControl._oValueHelpDialog = oValueHelpDialog;
             }).finally(function () {
+                oValueHelpDialog._oDialog.setTokens(oControl.getTokens())
+                oValueHelpDialog._oDialog.update();
                 oValueHelpDialog.openDialog();
             });
         }

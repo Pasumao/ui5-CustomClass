@@ -10,7 +10,7 @@ sap.ui.define([
      * @extends sap.ui.model.Model
      * @namespace CustomModel.HttpModel
      */
-    const HttpModel = Model.extend("com.aspn.tools.ybcpi0070.ext.CustomModel.HttpModel", {
+    const HttpModel = Model.extend("CustomModel.HttpModel", {
         metadata: {
             properties: {
                 vServiceUrl: { type: "string" }
@@ -231,6 +231,23 @@ sap.ui.define([
         } catch (error) {
             throw new Error(`HTTP request failed: ${error.message}`);
         }
+    };
+
+    /**
+     * @function
+     * @param {string} sPath The path to where to read the attribute value
+     * @param {sap.ui.model.Context} [oContext] The context with which the path should be resolved
+     *
+     * @returns {any} Value of the addressed property
+     * @public
+     */
+    HttpModel.prototype.getProperty = async function (sPath, oContext, oParameters) {
+        const param = {
+            context: oContext,
+            ...oParameters
+        }
+        const oValue = await this.GET(sPath, param)
+        return oValue;
     };
 
     return HttpModel;

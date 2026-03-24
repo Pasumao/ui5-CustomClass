@@ -91,6 +91,7 @@ sap.ui.define([
          */
         setmodelproperty(sModelName, sPropertyPath, value, bFireChange) {
             var model = this.getmodel(sModelName);
+            sPropertyPath = sPropertyPath.startsWith("/") ? sPropertyPath : "/" + sPropertyPath;
             if (bFireChange) {
                 const allControls = this.getView().findAggregatedObjects(true, (control) => {
                     try {
