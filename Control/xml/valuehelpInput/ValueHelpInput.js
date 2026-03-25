@@ -1,17 +1,11 @@
 sap.ui.define([
     "sap/m/MultiInput",
     "sap/m/MultiInputRenderer",
-    "./unit/_ValueHelpDialogUnit",
-    "sap/m/Label",
-    "sap/m/Column",
-    "sap/m/ColumnListItem"
+    "./unit/_ValueHelpDialogUnit"
 ], function (
     MultiInput,
     MultiInputRenderer,
-    _ValueHelpDialogUnit,
-    Label,
-    Column,
-    ColumnListItem
+    _ValueHelpDialogUnit
 ) {
     "use strict";
 
@@ -21,7 +15,9 @@ sap.ui.define([
 
                 title: { type: "string", defaultValue: "" },
 
-                tableData: { type: "object", defaultValue: [] },
+                tableData: { type: "object[]", defaultValue: [] },
+
+                odataPath: { type: "string", defaultValue: "" },
 
                 showValueHelp: { type: "boolean", defaultValue: true },
                 /**
@@ -55,14 +51,16 @@ sap.ui.define([
                 /**
                  * Defines the key of the column used for the internal key handling. The value of the column is used for the token key and also to
                  * identify the row in the table.
-                 *
+                 * **必须输入**
                  * @since 1.24
                  */
                 key: { type: "string", defaultValue: "" },
 
                 /**
                  * Defines the list of additional keys of the column used for the internal key handling.
-                 *
+                 * 特别说明，如果标注keys，则会在选中的token中增加两个customdata，
+                 * 一个是row会返回选择的整行数据
+                 * 一个是longKey会返回key对应的值
                  * @since 1.24
                  */
                 keys: { type: "string[]", defaultValue: null },
@@ -107,7 +105,7 @@ sap.ui.define([
                  * ValueHelp中Range的配置
                  */
                 ranges: { type: "Control.xml.valuehelpInput.RangeConfig", multiple: true, bindable: true }
-            },
+            }
         },
 
         renderer: MultiInputRenderer
@@ -117,8 +115,8 @@ sap.ui.define([
         MultiInput.prototype.init.apply(this, arguments);
     }
 
-    ValueHelpInput.prototype.fireValueHelpRequest = function () {
-        const oProperties = this._getVHProperties();
+    ValueHelpInput.prototype.fireValueHelpRequest = async function () {
+        const oProperties = await this._getVHProperties();
         this.setBusy(true);
 
         _ValueHelpDialogUnit.open(this, oProperties);
@@ -128,7 +126,7 @@ sap.ui.define([
         }, 1000);
     }
 
-    ValueHelpInput.prototype._getVHProperties = function () {
+    ValueHelpInput.prototype._getVHProperties = async function () {
         const oProperties = {};
         oProperties.supportMultiselect = this.getSupportMultiselect();
         oProperties.supportRanges = this.getSupportRanges();
@@ -141,7 +139,7 @@ sap.ui.define([
         oProperties.displayFormat = this.getDisplayFormat();
         oProperties.tokenDisplayBehaviour = this.getTokenDisplayBehaviour();
         oProperties.title = this.getTitle();
-        oProperties.tableData = this._getTableDataString();
+        oProperties.tableData = await this._getTableDataString();
 
         oProperties.range = this.getRanges().map(range => {
             return range._getRangeConfig();
@@ -154,10 +152,10 @@ sap.ui.define([
         return oProperties;
     }
 
-    ValueHelpInput.prototype._getTableDataString = function () {
-        const data = this.getTableData();
+    ValueHelpInput.prototype._getTableDataString = async function () {
+        const data = await this.getTableData();
         const result = data.map(obj => {
-            const newObj = { ...obj }; // 创建浅拷贝，避免修改原数组
+            const newObj = { ...obj };
             for (let key in newObj) {
                 if (typeof newObj[key] === 'number') {
                     newObj[key] = String(newObj[key]);
@@ -168,46 +166,109 @@ sap.ui.define([
         return result;
     }
 
-    // ValueHelpInput.prototype.setShowSuggestion = function (bShowSuggestion) {
-    //     this.setProperty("showSuggestion", true);
-    //     const aSuggestionColumns = this.getSuggestionColumns();
-    //     if (aSuggestionColumns.length === 0 && bShowSuggestion) {
-    //         this._setSuggestion()
-    //     }
-    // }
+    ValueHelpInput.prototype.getTableData = async function () {
+        if (this.getOdataPath()) {
+            return await this._getOData()
+        }
+        return this.getProperty("tableData")
+    }
 
-    // ValueHelpInput.prototype._setSuggestion = function () {
-    //     const aColumnConfig = this.getColumns().map(column => {
-    //         return column._getColumnConfig();
-    //     });
+    ValueHelpInput.prototype._getOData = async function () {
+        function getViewByControl(oControl) {
+            var oParent = oControl;
+            while (oParent && !(oParent instanceof sap.ui.core.mvc.View)) {
+                oParent = oParent.getParent();
+            }
+            return oParent;
+        }
+        function parseSimpleBinding(text) {
+            if (!text || typeof text !== 'string') {
+                return { model: "", path: "" };
+            }
 
-    //     aColumnConfig.forEach((config) => {
-    //         const oColumn = new Column({
-    //             popinDisplay: "Inline",
-    //             header: new Label({
-    //                 text: config.text
-    //             }),
-    //         })
-    //         this.addSuggestionColumn(oColumn)
-    //     })
+            // 去除首尾空格（防止意外输入的空格干扰）
+            const cleanText = text.trim();
 
-    //     const oColumnListItem = new ColumnListItem({
-    //         cells: aColumnConfig.map((config) => {
-    //             return new Label({
-    //                 text: `{${config.key}`
-    //             })
-    //         })
-    //     })
-    //     this.addSuggestionRow(oColumnListItem)
-    // }
+            // 查找 '>' 分隔符
+            const separatorIndex = cleanText.indexOf('>');
 
-    // ValueHelpInput.prototype.setTableData = function (data) {
-    //     this.setProperty("tableData", data)
-    //     const oBindingInfo = this.getBindingInfo("tableData")
-    //     if (this.getSelectedItem()) {
-    //         this.bindAggregation("suggestionItems", oBindingInfo)
-    //     }
-    // }
+            if (separatorIndex === -1) {
+                // 情况 2: 没有 '>'，全是路径，模型默认为空字符串
+                return {
+                    model: "",
+                    path: cleanText
+                };
+            } else {
+                // 情况 1: 有 '>'，分割模型和路径
+                const model = cleanText.substring(0, separatorIndex);
+                const path = cleanText.substring(separatorIndex + 1);
+
+                return {
+                    model: model,
+                    path: path
+                };
+            }
+        }
+        const oView = getViewByControl(this);
+        const oController = oView.getController();
+        let { model, path } = parseSimpleBinding(this.getOdataPath());
+        if (!model) {
+            model = undefined
+        }
+        let oModel = oView.getModel(model)
+        if (!oModel) {
+            oModel = oController.getOwnerComponent().getModel(model)
+        }
+        if (oModel.isA("sap.ui.model.odata.v2.ODataModel")) {
+            const fGetODatav2 = (aData = [], iSkip = 0) => {
+                return new Promise((resolve, reject) => {
+                    oModel.read(path, {
+                        filters: aFilters ?? [],
+                        urlParameters: {
+                            "$skip": iSkip,
+                            "$format": "json",
+                            "$top": "100" // 根据分页限制设置每次请求条目数
+                        },
+                        success: (oData, oResponse) => {
+                            aData = aData.concat(oData.results);
+                            if (oData.results.length === 100) {
+                                iSkip += 100;
+                                fGetODatav2(aData, iSkip).then(resolve, reject); // 继续请求下一页数据
+                            } else {
+                                resolve(aData);
+                            }
+                        },
+                        error: (error) => {
+                            if (error.statusCode === 200 && error.responseText) {
+                                resolve(error.responseText);
+                            }
+                        }
+                    });
+                });
+            };
+            return await fGetODatav2();
+        }
+        else if (oModel.isA("sap.ui.model.odata.v4.ODataModel")) {
+            const oBindList = oModel.bindList(path)
+            const fGetODatav4 = (aData = [], iSkip = 0) => {
+                return new Promise((resolve, reject) => {
+                    oBindList.requestContexts(iSkip, 100).then(function (aContexts) {
+                        aContexts.forEach(function (context) {
+                            aData.push(context.getObject());
+                        });
+                        if (aContexts.length === 100) {
+                            iSkip += 100;
+                            fGetODatav4(aData, iSkip).then(resolve, reject);
+                        } else {
+                            resolve(aData);
+                        }
+                    });
+                });
+            };
+            return await fGetODatav4();
+        }
+        return []
+    }
 
     return ValueHelpInput;
 });
