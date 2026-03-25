@@ -204,61 +204,6 @@ sap.ui.define([
         return matches ? [...new Set(matches)] : []; // 去重
     }
 
-    // /**
-    //  * 计算公式层级
-    //  */
-    // Table2DController.prototype._calculateLevels = function () {
-    //     let remainingFormulas = new Set(this._formulaMap.keys());
-    //     let hasProgress = true;
-
-    //     // 循环直到所有公式都分配了层级，或者发现循环依赖（无进展）
-    //     while (remainingFormulas.size > 0 && hasProgress) {
-    //         hasProgress = false;
-    //         const toRemove = [];
-
-    //         for (const cellId of remainingFormulas) {
-    //             const info = this._formulaMap.get(cellId);
-    //             const deps = info.dependencies;
-
-    //             // 检查依赖是否都已解决
-    //             const allDepsResolved = deps.every(dep => {
-    //                 // 依赖是初始数据 OR 依赖是已经计算出层级的公式
-    //                 return this._dataMap.has(dep)
-    //                     || (this._formulaMap.has(dep) && this._formulaMap.get(dep).level !== -1)
-    //                     || (!this._formulaMap.has(dep) && !this._dataMap.has(dep))
-    //             });
-
-    //             if (allDepsResolved) {
-    //                 // 计算当前公式的层级 = 依赖项中的最大层级 + 1
-    //                 // 如果依赖全是初始数据，maxDepLevel 为 0，则当前为 1
-    //                 let maxDepLevel = 0;
-
-    //                 deps.forEach(dep => {
-    //                     if (this._formulaMap.has(dep)) {
-    //                         const depLevel = this._formulaMap.get(dep).level;
-    //                         if (depLevel > maxDepLevel) {
-    //                             maxDepLevel = depLevel;
-    //                         }
-    //                     }
-    //                 });
-
-    //                 info.level = maxDepLevel + 1;
-    //                 // this._formulaMap.set(cellId, info);
-    //                 toRemove.push(cellId);
-    //                 hasProgress = true;
-    //             }
-    //         }
-
-    //         // 移除已分层的公式
-    //         toRemove.forEach(id => remainingFormulas.delete(id));
-    //     }
-
-    //     if (remainingFormulas.size > 0) {
-    //         console.error("检测到循环依赖或无法解析的引用:", Array.from(remainingFormulas));
-    //         throw new Error(`公式存在循环依赖或缺少数据: ${Array.from(remainingFormulas).join(', ')}`);
-    //     }
-    // }
-
     /**
      * 优化后的层级计算 (使用 Kahn 算法)
      */
@@ -358,10 +303,10 @@ sap.ui.define([
             } else {
                 val = { value: 0 };
             }
-            if (!val) {
-                val = { value: 0 };
-            }
             val = val.value
+            if (!val) {
+                val = 0
+            }
             // 使用正则全局替换，确保只替换完整的单元格ID
             // 这里的逻辑假设公式中单元格ID周围是非字母数字字符或边界
             const regex = new RegExp(`\\b${dep}\\b`, 'g');
@@ -389,14 +334,23 @@ sap.ui.define([
      * @param {string} value 数据值
      */
     Table2DController.prototype.changeCellData = function (row_key, col_key, value) {
-        this._dataMap.set(`${row_key}.${col_key}`, value)
+        const oCell = this._dataMap.get(`${row_key}.${col_key}`)
+        if (oCell) {
+            oCell.value = value
+        }
+    }
+
+    /**
+     * 渲染列
+     */
+    Table2DController.prototype.renderColumn = function () {
+        this._setColumns()
     }
 
     /**
      * 渲染表格到sap.ui.table.Table
      */
     Table2DController.prototype.render = function () {
-        this._setColumns()
         const oData = this.getTableData()
 
         const oExData = this._addExtraData(oData)
