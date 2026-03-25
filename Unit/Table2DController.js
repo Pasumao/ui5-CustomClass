@@ -423,7 +423,7 @@ sap.ui.define([
                     row: row.key,
                     col: col.key,
                     is_formula: this._formulaMap.has(sCell),
-                    editable: Boolean(cellValue.edit) && this._formulaMap.has(sCell),
+                    editable: Boolean(cellValue.editable) && !this._formulaMap.has(sCell),
                     value: cellValue.value
                 }
             })
@@ -502,7 +502,7 @@ sap.ui.define([
                         row: row.key,
                         col: col.key,
                         is_formula: this._formulaMap.has(sCell),
-                        editable: Boolean(cellValue.edit) && this._formulaMap.has(sCell),
+                        editable: Boolean(cellValue.editable) && !this._formulaMap.has(sCell),
                         value: cellValue.value
                     }
                 })
