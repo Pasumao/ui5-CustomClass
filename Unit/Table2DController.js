@@ -426,7 +426,6 @@ sap.ui.define([
      * 渲染树形表格 用于sap.ui.table.TreeTable
      */
     Table2DController.prototype.renderForTree = function () {
-        this._setColumns()
         this.excute()
         const groupData = this._groupData()
         this.oModel.setData(groupData)
