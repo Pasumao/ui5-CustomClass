@@ -378,7 +378,8 @@ sap.ui.define([
                     col: col.key,
                     is_formula: this._formulaMap.has(sCell),
                     editable: Boolean(cellValue.editable) && !this._formulaMap.has(sCell),
-                    value: cellValue.value
+                    value: cellValue.value,
+                    currency: cellValue.unit
                 }
             })
             tableData.push(rowData)
@@ -456,7 +457,8 @@ sap.ui.define([
                         col: col.key,
                         is_formula: this._formulaMap.has(sCell),
                         editable: Boolean(cellValue.editable) && !this._formulaMap.has(sCell),
-                        value: cellValue.value
+                        value: cellValue.value,
+                        currency: cellValue.unit
                     }
                 })
                 groupData.groups.push(rowData)
