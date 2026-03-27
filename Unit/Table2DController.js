@@ -151,7 +151,7 @@ sap.ui.define([
                 }
                 const path = `/${cellRow}/${cellCol}`
                 if (!this.oModel.getProperty(path + "/is_formula")) {
-                    this.changeCellData(cellRow, cellCol, cell)
+                    this.changeCellValue(cellRow, cellCol, cell)
                 }
             })
         })
@@ -333,7 +333,7 @@ sap.ui.define([
      * @param {string} col_key 列索引
      * @param {string} value 数据值
      */
-    Table2DController.prototype.changeCellData = function (row_key, col_key, value) {
+    Table2DController.prototype.changeCellValue = function (row_key, col_key, value) {
         const oCell = this._dataMap.get(`${row_key}.${col_key}`)
         if (oCell) {
             oCell.value = value
