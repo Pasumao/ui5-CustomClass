@@ -1,15 +1,15 @@
 sap.ui.define([
-    "sap/m/Input",
-    "sap/m/InputBaseRenderer",
+    "sap/m/MultiInput",
+    "sap/m/MultiInputRenderer",
     "./unit/_ValueHelpDialogUnit"
 ], function (
-    Input,
-    InputBaseRenderer,
+    MultiInput,
+    MultiInputRenderer,
     _ValueHelpDialogUnit
 ) {
     "use strict";
 
-    const ValueHelpInput = Input.extend("Control.xml.valuehelpInput.ValueHelpInput", {
+    const ValueHelpMuiltiInput = MultiInput.extend("Control.xml.valuehelpInput.ValueHelpMuiltiInput", {
         metadata: {
             properties: {
 
@@ -26,6 +26,27 @@ sap.ui.define([
                  * @since 1.24
                  */
                 basicSearchText: { type: "string", defaultValue: "" },
+
+                /**
+                 * Enables multi-selection in the table used.
+                 *
+                 * @since 1.24
+                 */
+                supportMultiselect: { type: "boolean", defaultValue: true },
+
+                /**
+                 * Enables the ranges (conditions) feature in the dialog.
+                 *
+                 * @since 1.24
+                 */
+                supportRanges: { type: "boolean", defaultValue: false },
+
+                /**
+                 * If this property is set to <code>true</code>, the value help dialog only supports the ranges (conditions) feature.
+                 *
+                 * @since 1.24
+                 */
+                supportRangesOnly: { type: "boolean", defaultValue: false },
 
                 /**
                  * Defines the key of the column used for the internal key handling. The value of the column is used for the token key and also to
@@ -78,18 +99,23 @@ sap.ui.define([
                 /**
                  * ValueHelp中表上的Column配置
                  */
-                columns: { type: "Control.xml.valuehelpInput.ColumnConfig", multiple: true, bindable: true }
+                columns: { type: "Control.xml.valuehelpInput.ColumnConfig", multiple: true, bindable: true },
+
+                /**
+                 * ValueHelp中Range的配置
+                 */
+                ranges: { type: "Control.xml.valuehelpInput.RangeConfig", multiple: true, bindable: true }
             }
         },
 
-        renderer: InputBaseRenderer
+        renderer: MultiInputRenderer
     });
 
-    ValueHelpInput.prototype.init = function () {
-        Input.prototype.init.apply(this, arguments);
+    ValueHelpMuiltiInput.prototype.init = function () {
+        MultiInput.prototype.init.apply(this, arguments);
     }
 
-    ValueHelpInput.prototype.fireValueHelpRequest = async function () {
+    ValueHelpMuiltiInput.prototype.fireValueHelpRequest = async function () {
         const oProperties = await this._getVHProperties();
         this.setBusy(true);
 
@@ -100,11 +126,11 @@ sap.ui.define([
         }, 1000);
     }
 
-    ValueHelpInput.prototype._getVHProperties = async function () {
+    ValueHelpMuiltiInput.prototype._getVHProperties = async function () {
         const oProperties = {};
-        oProperties.supportMultiselect = false
-        oProperties.supportRanges = false
-        oProperties.supportRangesOnly = false
+        oProperties.supportMultiselect = this.getSupportMultiselect();
+        oProperties.supportRanges = this.getSupportRanges();
+        oProperties.supportRangesOnly = this.getSupportRangesOnly();
         oProperties.key = this.getKey();
         oProperties.keys = this.getKeys();
         oProperties.descriptionKey = this.getDescriptionKey();
@@ -115,6 +141,10 @@ sap.ui.define([
         oProperties.title = this.getTitle();
         oProperties.tableData = await this._getTableDataString();
 
+        oProperties.range = this.getRanges().map(range => {
+            return range._getRangeConfig();
+        });
+
         oProperties.column = this.getColumns().map(column => {
             return column._getColumnConfig();
         });
@@ -122,7 +152,7 @@ sap.ui.define([
         return oProperties;
     }
 
-    ValueHelpInput.prototype._getTableDataString = async function () {
+    ValueHelpMuiltiInput.prototype._getTableDataString = async function () {
         const data = await this.getTableData();
         const result = data.map(obj => {
             const newObj = { ...obj };
@@ -136,14 +166,14 @@ sap.ui.define([
         return result;
     }
 
-    ValueHelpInput.prototype.getTableData = async function () {
+    ValueHelpMuiltiInput.prototype.getTableData = async function () {
         if (this.getOdataPath()) {
             return await this._getOData()
         }
         return this.getProperty("tableData")
     }
 
-    ValueHelpInput.prototype._getOData = async function () {
+    ValueHelpMuiltiInput.prototype._getOData = async function () {
         function getViewByControl(oControl) {
             var oParent = oControl;
             while (oParent && !(oParent instanceof sap.ui.core.mvc.View)) {
@@ -240,5 +270,5 @@ sap.ui.define([
         return []
     }
 
-    return ValueHelpInput;
+    return ValueHelpMuiltiInput;
 });
