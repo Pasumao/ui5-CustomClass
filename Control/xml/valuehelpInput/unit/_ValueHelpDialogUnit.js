@@ -57,8 +57,9 @@ sap.ui.define([
             this._oDialog = null;
             this._oProperties = {};
             this.setProperty(oProperties);
-            /** @type {sap.m.MultiInput} */
+            /** @type {sap.m.InputBase} */
             this._oControl = oControl;
+            this._bMultiControl = oControl.isA("sap.m.MultiInput");
             this._oTable = null;
         }
     });
@@ -102,6 +103,7 @@ sap.ui.define([
         }
         // 检测是否为仅Range模式
         if (propr.supportRangesOnly) {
+            this._oProperties = propr
             return;
         }
         propr.supportRangesOnly = false;
@@ -366,7 +368,20 @@ sap.ui.define([
 
     ValueHelpDialog.prototype._initTable = function () {
         this._oDialog.setTokens([]);
-        this._oDialog.setTokens(this._oControl.getTokens());
+        if (this._bMultiControl) {
+            const aTokens = this._oControl.getTokens()
+            this._oDialog.setTokens(aTokens);
+        } else {
+            const sValue = this._oControl.getValue()
+            if (sValue) {
+                this._oDialog.setTokens([
+                    new sap.m.Token({
+                        key: sValue,
+                        text: sValue
+                    })
+                ]);
+            }
+        }
     };
 
     ValueHelpDialog.prototype.openDialog = function () {
@@ -375,10 +390,14 @@ sap.ui.define([
 
     ValueHelpDialog.prototype._ok = function (oEvent) {
         var aTokens = oEvent.getParameter("tokens");
+        if (this._bMultiControl) {
+            this._oControl.setTokens(aTokens)
 
-        this._oControl.setTokens(aTokens)
-
-        this._oControl.fireTokenUpdate();
+            this._oControl.fireTokenUpdate();
+        } else {
+            const sValue = aTokens[0].data("row")[this._oProperties.key]
+            this._oControl.setValue(sValue)
+        }
         this._oDialog.close();
     };
 

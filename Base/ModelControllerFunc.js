@@ -48,7 +48,7 @@ sap.ui.define([
                 : this.getView().getModel(sModelName);
             return oModel
                 ? oModel
-                : this.getOwnerComponent().getModel(sModelName);
+                : this.getAppComponent().getModel(sModelName);
         },
 
         /**
