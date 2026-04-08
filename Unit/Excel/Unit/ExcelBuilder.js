@@ -1,10 +1,6 @@
 sap.ui.define([
     "./xlsx-js-style",
-<<<<<<< HEAD
     "./../../Lodash"
-=======
-    "./../../../Unit/Lodash"
->>>>>>> 2888b4474563f4f75f7e97243a096505da7ee5bd
 ], function (
     SheetJS,
     _
