@@ -32,8 +32,8 @@ sap.ui.define([
         }
     }
 
-    function setColumnsWidth(ws, wsData, columns) {
-        const colWidths = columns.map((col, colIndex) => {
+    function setColumns(ws, wsData, columns) {
+        const colConfigs = columns.map((col, colIndex) => {
             let maxLen = 0;
             wsData.forEach(row => {
                 if (row[colIndex]) {
@@ -42,9 +42,9 @@ sap.ui.define([
                     if (len > maxLen) maxLen = len;
                 }
             });
-            return { wch: Math.min(Math.max(maxLen, 10), 50) };
+            return { wch: Math.min(Math.max(maxLen, 10), 50), hidden: col.hidden };
         });
-        ws['!cols'] = colWidths;
+        ws['!cols'] = colConfigs;
     }
 
     function setStyle(ws, styles) {
@@ -81,9 +81,7 @@ sap.ui.define([
             // 4. 创建工作表
             const ws = XLSX.utils.aoa_to_sheet(wsData);
 
-            setColumnsWidth(ws, wsData, columns);
-
-            ws['!cols'] = _.merge({}, ws['!cols'] || {}, oStyle || {});
+            setColumns(ws, wsData, columns);
 
             if (enableSmartAlign) {
                 setSmartAlign(ws);
