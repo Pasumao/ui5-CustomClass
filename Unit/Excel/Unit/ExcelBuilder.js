@@ -55,7 +55,6 @@ sap.ui.define([
                 for (let C = range.s.c; C <= range.e.c; ++C) {
                     const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
                     ws[cellAddress].s = _.merge({}, ws[cellAddress].s || {}, oStyle || {});
-                    // ws[cellAddress].t = 'n'
                 }
             }
         })
@@ -83,6 +82,8 @@ sap.ui.define([
             const ws = XLSX.utils.aoa_to_sheet(wsData);
 
             setColumnsWidth(ws, wsData, columns);
+
+            ws['!cols'] = _.merge({}, ws['!cols'] || {}, oStyle || {});
 
             if (enableSmartAlign) {
                 setSmartAlign(ws);
