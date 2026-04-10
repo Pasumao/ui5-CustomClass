@@ -194,14 +194,79 @@ sap.ui.define([
 
     /**
      * 提取公式依赖的单元格行列数据
-     * @param {string} formulaStr 公式字符串
+     * @param {string} formula 公式字符串
      * @returns {string[]} 公式依赖项
      */
-    Table2DController.prototype._extractDependencies = function (formulaStr) {
+    Table2DController.prototype._extractDependencies = function (formula) {
         // 匹配规则：字母+数字 . 字母+数字 (根据示例 key.id 格式)
-        const regex = /[a-zA-Z0-9]+\.[a-zA-Z0-9]+/gi;
-        const matches = formulaStr.match(regex);
-        return matches ? [...new Set(matches)] : []; // 去重
+        // const regex = /[a-zA-Z0-9]+\.[a-zA-Z0-9]+/gi;
+        // const matches = formulaStr.match(regex);
+        // return matches ? [...new Set(matches)] : []; // 去重
+        function cleanBrackets(str) {
+            str = str.trim();
+            // 正则：如果以 ( 开头，以 ) 结尾，且中间没有未闭合的括号（简单判断），则去除
+            // 更严谨的做法是再次检查括号匹配，但对于提取标识符，通常去掉首尾即可
+            if (str.startsWith('(') && str.endsWith(')')) {
+                // 简单检查是否匹配（防止 "(A).B)" 这种情况）
+                let level = 0;
+                for (let i = 0; i < str.length; i++) {
+                    if (str[i] === '(') level++;
+                    if (str[i] === ')') level--;
+                    // 如果在还没到最后一个字符时，层级就归零了，说明首尾括号不是一对
+                    if (level === 0 && i < str.length - 1) {
+                        return str;
+                    }
+                }
+                return str.slice(1, -1);
+            }
+            return str;
+        }
+        let parts = [];
+        let currentPart = "";
+        let bracketLevel = 0; // 括号层级计数器
+
+        // 1. 核心解析：按层级分割
+        for (let i = 0; i < formula.length; i++) {
+            const char = formula[i];
+
+            // 遇到左括号，层级+1
+            if (char === '(') {
+                bracketLevel++;
+                currentPart += char;
+            }
+            // 遇到右括号，层级-1
+            else if (char === ')') {
+                bracketLevel--;
+                currentPart += char;
+            }
+            // 遇到运算符 且 括号层级为0（说明不在括号内），则是分割点
+            else if (bracketLevel === 0 && ['+', '-', '*', '/'].includes(char)) {
+                if (currentPart.startsWith('(')) {
+                    parts = [...parts, ...this._extractDependencies(currentPart.trim().slice(1, -1))]
+                } else {
+                    parts.push(currentPart.trim());
+                }
+                currentPart = ""; // 重置，准备存放下一个部分
+            }
+            // 其他字符直接拼接
+            else {
+                currentPart += char;
+            }
+        }
+
+        // 把最后一部分加进去
+        if (currentPart.trim()) {
+            if (currentPart.startsWith('(')) {
+                parts = [...parts, ...this._extractDependencies(currentPart.trim().slice(1, -1))]
+            } else {
+                parts.push(currentPart.trim());
+            }
+        }
+
+        // 2. 提取左右两边并去重
+        const uniqueItems = new Set(parts);
+
+        return Array.from(uniqueItems);
     }
 
     /**
@@ -296,9 +361,9 @@ sap.ui.define([
 
         deps.forEach(dep => {
             let val
-            if (this._dataMap.has(dep)) {
+            if (Number(this._dataMap.get(dep)?.value)) {
                 val = this._dataMap.get(dep);
-            } else if (this._fdataMap.has(dep)) {
+            } else if (Number(this._fdataMap.get(dep)?.value)) {
                 val = this._fdataMap.get(dep);
             } else {
                 val = { value: 0 };
@@ -307,6 +372,7 @@ sap.ui.define([
             if (!val) {
                 val = 0
             }
+
             // 使用正则全局替换，确保只替换完整的单元格ID
             // 这里的逻辑假设公式中单元格ID周围是非字母数字字符或边界
             const regex = new RegExp(`\\b${dep}\\b`, 'g');
@@ -442,8 +508,12 @@ sap.ui.define([
         exc.group.forEach(group => {
             const groupData = {}
             groupData.groups = []
-            groupData[exc.key] = { value: group }
-            this._aRowConfigs.filter(r => r[exc.key] === group).forEach(row => {
+            groupData[exc.key] = { value: group.label }
+            this._extraColumnConfig.slice(1).forEach(ex => {
+                const excc = ex.group.find(i => i.key === group.key)
+                groupData[ex.key] = { value: excc.label }
+            })
+            this._aRowConfigs.filter(r => r[exc.key] === group.key).forEach(row => {
                 const rowData = {}
                 rowData.row_label = {
                     label: row.label,
