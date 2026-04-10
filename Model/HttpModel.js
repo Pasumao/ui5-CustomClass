@@ -81,7 +81,7 @@ sap.ui.define([
      * 发送POST请求
      * @public
      * @param {string} sPath 请求路径
-     * @param {object} oData 请求体
+     * @param {object|Array} oData 请求体
      * @param {RequestParam} [oParameters] 请求参数
      * @returns {Promise<object>} 请求结果
      */

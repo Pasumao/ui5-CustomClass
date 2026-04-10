@@ -12,6 +12,7 @@ sap.ui.define([
          * @typedef {sap.ui.export.Column} Column
          * @property {string} label header text
          * @property {string} key
+         * @property {boolean} [hidden] 隐藏列
          */
 
         /**
