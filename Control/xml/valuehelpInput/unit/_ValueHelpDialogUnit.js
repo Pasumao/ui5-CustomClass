@@ -182,9 +182,8 @@ sap.ui.define([
     ValueHelpDialog.prototype._getFilterBar = function (aColumnConfig) {
         const oFilterBar = new FilterBar({
             basicSearch: new SearchField({
-                search: oEvent => {
-                    this._oDialog.getFilterBar().fireSearch();
-                }
+                search: oEvent => { this._oDialog.getFilterBar().fireSearch() },
+                change: oEvent => { this._oDialog.getFilterBar().fireSearch() }
             }),
             filterGroupItems: aColumnConfig
                 .map(({ text, key, visibleInFilterBar, hiddenFilter }) => {
@@ -201,7 +200,12 @@ sap.ui.define([
                                     supportRanges: true,
                                     supportRangesOnly: true,
                                     key: "range"
-                                })
+                                }),
+                                tokenUpdate: oEvent => {
+                                    setTimeout(() => {
+                                        this._oDialog.getFilterBar().fireSearch()
+                                    }, 0);
+                                }
                             });
                             oMultiInput.addValidator(ValueHelpDialog._Validator("range"));
                             return oMultiInput;
