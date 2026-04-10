@@ -54,8 +54,8 @@ sap.ui.define([
             for (let R = range.s.r; R <= range.e.r; ++R) {
                 for (let C = range.s.c; C <= range.e.c; ++C) {
                     const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
-                    ws[cellAddress].s = _.merge({}, ws[cellAddress].s || {}, oStyle || {});
-                    // ws[cellAddress].t = 'n'
+                    const a = ws[cellAddress]
+                    ws[cellAddress].s = _.merge({}, ws[cellAddress]?.s || {}, oStyle || {});
                 }
             }
         })
@@ -92,6 +92,12 @@ sap.ui.define([
 
             if (customMerges && customMerges.length > 0) {
                 ws['!merges'] = customMerges;
+            }
+
+            if (params.autofilter) {
+                ws['!autofilter'] = {
+                    ref: `${XLSX.utils.encode_cell(params.autofilter.s)}:${XLSX.utils.encode_cell(params.autofilter.e)}`
+                };
             }
 
             const wb = XLSX.utils.book_new();

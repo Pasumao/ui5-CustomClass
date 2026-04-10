@@ -36,7 +36,7 @@ sap.ui.define([
      * @property {string} col_key 列唯一标识
      * @property {string} value 单元格值
      * @property {boolean} [editable] 是否可编辑
-     * @property {boolean} [is_formula] 是否为公式
+     * @property {boolean} [isFormula] 是否为公式
      */
 
     /**
@@ -62,10 +62,9 @@ sap.ui.define([
             /** @type {ColumnConfig[]} aColumnConfigs 列配置 */
             this._aColumnConfigs = [];
 
-            this._fdataMap = new Map();
-            this._dataMap = new Map();
+            this._mData = new Map();
             // 存储每个公式的层级和依赖信息
-            this._formulaMap = new Map();
+            this._mFormula = new Map();
 
             /**  @type {ExtraColumnConfig[]} extraColumnConfigs 额外的列配置 */
             this._extraColumnConfig = [];
@@ -98,7 +97,8 @@ sap.ui.define([
                     label: "항목",
                     template: new sap.m.Text({
                         text: `{${this.sModelName}>row_label/label}`
-                    })
+                    }),
+                    visible: !this._bHide
                 })
                 this.oTable.addColumn(firstColumn)
             }
@@ -126,6 +126,10 @@ sap.ui.define([
         return this._aRowConfigs
     }
 
+    Table2DController.prototype.hideFirstColumn = function (bHide) {
+        this._bHide = bHide
+    }
+
     Table2DController.prototype.set2dArrayData = function (rootRow, rootCol, towdArray) {
         const colData = this.getColumnConfigs()
         function getCol(rootCol, colIndex) {
@@ -150,7 +154,7 @@ sap.ui.define([
                     return;
                 }
                 const path = `/${cellRow}/${cellCol}`
-                if (!this.oModel.getProperty(path + "/is_formula")) {
+                if (!this.oModel.getProperty(path + "/isFormula")) {
                     this.changeCellValue(cellRow, cellCol, cell)
                 }
             })
@@ -172,7 +176,7 @@ sap.ui.define([
      */
     Table2DController.prototype.setCellData = function (cellData) {
         cellData.forEach(cell => {
-            this._dataMap.set(`${cell.row_key}.${cell.col_key}`, cell)
+            this._mData.set(`${cell.row_key}.${cell.col_key}`, cell)
         })
     }
 
@@ -183,7 +187,7 @@ sap.ui.define([
     Table2DController.prototype.setFormulaConfigs = function (aFormulaConfig) {
         aFormulaConfig.forEach(f => {
             const sCell = `${f.row_key}.${f.col_key}`
-            this._formulaMap.set(sCell, {
+            this._mFormula.set(sCell, {
                 formula: f.formula,
                 level: -1, // -1 表示未计算/未知层级
                 dependencies: this._extractDependencies(f.formula)
@@ -198,21 +202,14 @@ sap.ui.define([
      * @returns {string[]} 公式依赖项
      */
     Table2DController.prototype._extractDependencies = function (formula) {
-        // 匹配规则：字母+数字 . 字母+数字 (根据示例 key.id 格式)
-        // const regex = /[a-zA-Z0-9]+\.[a-zA-Z0-9]+/gi;
-        // const matches = formulaStr.match(regex);
-        // return matches ? [...new Set(matches)] : []; // 去重
         function cleanBrackets(str) {
             str = str.trim();
-            // 正则：如果以 ( 开头，以 ) 结尾，且中间没有未闭合的括号（简单判断），则去除
-            // 更严谨的做法是再次检查括号匹配，但对于提取标识符，通常去掉首尾即可
             if (str.startsWith('(') && str.endsWith(')')) {
                 // 简单检查是否匹配（防止 "(A).B)" 这种情况）
                 let level = 0;
                 for (let i = 0; i < str.length; i++) {
                     if (str[i] === '(') level++;
                     if (str[i] === ')') level--;
-                    // 如果在还没到最后一个字符时，层级就归零了，说明首尾括号不是一对
                     if (level === 0 && i < str.length - 1) {
                         return str;
                     }
@@ -225,36 +222,30 @@ sap.ui.define([
         let currentPart = "";
         let bracketLevel = 0; // 括号层级计数器
 
-        // 1. 核心解析：按层级分割
         for (let i = 0; i < formula.length; i++) {
             const char = formula[i];
 
-            // 遇到左括号，层级+1
             if (char === '(') {
                 bracketLevel++;
                 currentPart += char;
             }
-            // 遇到右括号，层级-1
             else if (char === ')') {
                 bracketLevel--;
                 currentPart += char;
             }
-            // 遇到运算符 且 括号层级为0（说明不在括号内），则是分割点
             else if (bracketLevel === 0 && ['+', '-', '*', '/'].includes(char)) {
                 if (currentPart.startsWith('(')) {
                     parts = [...parts, ...this._extractDependencies(currentPart.trim().slice(1, -1))]
                 } else {
                     parts.push(currentPart.trim());
                 }
-                currentPart = ""; // 重置，准备存放下一个部分
+                currentPart = "";
             }
-            // 其他字符直接拼接
             else {
                 currentPart += char;
             }
         }
 
-        // 把最后一部分加进去
         if (currentPart.trim()) {
             if (currentPart.startsWith('(')) {
                 parts = [...parts, ...this._extractDependencies(currentPart.trim().slice(1, -1))]
@@ -263,7 +254,6 @@ sap.ui.define([
             }
         }
 
-        // 2. 提取左右两边并去重
         const uniqueItems = new Set(parts);
 
         return Array.from(uniqueItems);
@@ -275,7 +265,7 @@ sap.ui.define([
     Table2DController.prototype._calculateLevels = function () {
         const inDegree = new Map(); // 存储每个节点的入度
         const graph = new Map();    // 邻接表: key -> [被依赖的节点列表]
-        const allNodes = Array.from(this._formulaMap.keys());
+        const allNodes = Array.from(this._mFormula.keys());
 
         // 初始化
         allNodes.forEach(node => {
@@ -285,10 +275,10 @@ sap.ui.define([
 
         // 构建图和入度
         allNodes.forEach(node => {
-            const info = this._formulaMap.get(node);
+            const info = this._mFormula.get(node);
             info.dependencies.forEach(dep => {
                 // 只有当依赖项也是公式时，才建立图关系
-                if (this._formulaMap.has(dep)) {
+                if (this._mFormula.has(dep)) {
                     graph.get(dep).push(node); // dep -> node
                     inDegree.set(node, inDegree.get(node) + 1);
                 }
@@ -299,7 +289,7 @@ sap.ui.define([
         const queue = [];
         allNodes.forEach(node => {
             if (inDegree.get(node) === 0) {
-                this._formulaMap.get(node).level = 1; // 第一层
+                this._mFormula.get(node).level = 1; // 第一层
                 queue.push(node);
             }
         });
@@ -308,12 +298,12 @@ sap.ui.define([
         while (queue.length > 0) {
             const current = queue.shift();
             processedCount++;
-            const currentLevel = this._formulaMap.get(current).level;
+            const currentLevel = this._mFormula.get(current).level;
 
             // 处理当前节点指向的所有节点
             const neighbors = graph.get(current);
             neighbors.forEach(neighbor => {
-                const neighborInfo = this._formulaMap.get(neighbor);
+                const neighborInfo = this._mFormula.get(neighbor);
                 // 更新邻居的层级：max(当前层级，依赖层级 + 1)
                 neighborInfo.level = Math.max(neighborInfo.level, currentLevel + 1);
 
@@ -336,14 +326,16 @@ sap.ui.define([
      */
     Table2DController.prototype.excute = function () {
         // 2. 按层级排序公式
-        const sortedFormulas = Array.from(this._formulaMap.entries()).sort((a, b) => {
+        const sortedFormulas = Array.from(this._mFormula.entries()).sort((a, b) => {
             return a[1].level - b[1].level;
         });
 
         for (const [cellId, info] of sortedFormulas) {
             const calculatedValue = this._evaluateFormula(info.formula);
-
-            this._fdataMap.set(cellId, { value: calculatedValue });
+            const cell = this._mData.get(cellId);
+            cell.value = calculatedValue;
+            cell.isFormula = true;
+            this._mData.set(cellId, cell);
         }
 
     }
@@ -361,27 +353,17 @@ sap.ui.define([
 
         deps.forEach(dep => {
             let val
-            if (Number(this._dataMap.get(dep)?.value)) {
-                val = this._dataMap.get(dep);
-            } else if (Number(this._fdataMap.get(dep)?.value)) {
-                val = this._fdataMap.get(dep);
-            } else {
-                val = { value: 0 };
-            }
+            val = this.getCellValue(dep)
             val = val.value
             if (!val) {
                 val = 0
             }
 
-            // 使用正则全局替换，确保只替换完整的单元格ID
-            // 这里的逻辑假设公式中单元格ID周围是非字母数字字符或边界
             const regex = new RegExp(`\\b${dep}\\b`, 'g');
             executableStr = executableStr.replace(regex, val);
         });
 
         try {
-            // 使用 Function 构造器安全地执行数学表达式 (比 eval 稍好，但仍需注意输入源可信度)
-            // 支持 + - * / ()
             const result = new Function('return ' + executableStr)();
             if (isNaN(result)) {
                 return 0;
@@ -400,7 +382,7 @@ sap.ui.define([
      * @param {string} value 数据值
      */
     Table2DController.prototype.changeCellValue = function (row_key, col_key, value) {
-        const oCell = this._dataMap.get(`${row_key}.${col_key}`)
+        const oCell = this._mData.get(`${row_key}.${col_key}`)
         if (oCell) {
             oCell.value = value
         }
@@ -439,14 +421,8 @@ sap.ui.define([
             this._aColumnConfigs.forEach(col => {
                 let cellValue = this.getCellValue(row.key, col.key)
                 const sCell = `${row.key}.${col.key}`
-                rowData[col.key] = {
-                    row: row.key,
-                    col: col.key,
-                    is_formula: this._formulaMap.has(sCell),
-                    editable: Boolean(cellValue.editable) && !this._formulaMap.has(sCell),
-                    value: cellValue.value,
-                    currency: cellValue.unit
-                }
+                cellValue.isFormula = this._mFormula.has(sCell)
+                rowData[col.key] = cellValue
             })
             tableData.push(rowData)
         })
@@ -522,14 +498,8 @@ sap.ui.define([
                 this._aColumnConfigs.forEach(col => {
                     let cellValue = this.getCellValue(row.key, col.key)
                     const sCell = `${row.key}.${col.key}`
-                    rowData[col.key] = {
-                        row: row.key,
-                        col: col.key,
-                        is_formula: this._formulaMap.has(sCell),
-                        editable: Boolean(cellValue.editable) && !this._formulaMap.has(sCell),
-                        value: cellValue.value,
-                        currency: cellValue.unit
-                    }
+                    cellValue.isFormula = this._mFormula.has(sCell)
+                    rowData[col.key] = cellValue
                 })
                 groupData.groups.push(rowData)
             })
@@ -540,16 +510,17 @@ sap.ui.define([
 
     /**
      * @param {string} row_key
-     * @param {string} col_key
+     * @param {string} [col_key]
      * @returns {string} value
      */
     Table2DController.prototype.getCellValue = function (row_key, col_key) {
-        const sCell = `${row_key}.${col_key}`;
-        return this._fdataMap.has(sCell)
-            ? this._fdataMap.get(sCell)
-            : this._dataMap.has(sCell)
-                ? this._dataMap.get(sCell)
-                : 0
+        let sCell;
+        if (!col_key) {
+            sCell = row_key
+        } else {
+            sCell = `${row_key}.${col_key}`
+        }
+        return this._mData.get(sCell)
     }
 
     return Table2DController
