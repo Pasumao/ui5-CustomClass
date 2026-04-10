@@ -113,7 +113,7 @@ sap.ui.define([
         }
         // 检测是否设置了baseSearchFields
         if (!propr.filterBar.baseSearchFields) {
-            propr.filterBar.baseSearchFields = [propr.key];
+            propr.filterBar.baseSearchFields = propr.column.map(column => column.key);
         }
         this._oProperties = propr
     };
