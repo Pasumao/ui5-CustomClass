@@ -61,7 +61,7 @@ sap.ui.define([
     }
 
     return {
-        build: async function (params) {
+        buildSheet: async function (params) {
             const columns = params.columns;
             const data = params.data;
             const enableSmartAlign = params.enableSmartAlign !== false;
@@ -99,10 +99,17 @@ sap.ui.define([
                 };
             }
 
+            return ws;
+        },
+
+        buildBook: async function (aWS) {
             const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+
+            aWS.forEach(item => {
+                XLSX.utils.book_append_sheet(wb, item.ws, item.sheetName);
+            })
 
             return XLSX.write(wb, { bookType: "xlsx", type: "buffer", cellStyles: true });
-        }
+        },
     }
 });
