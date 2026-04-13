@@ -47,6 +47,33 @@ sap.ui.define([
      */
 
     /**
+     * @typedef GroupConfig
+     * @property {string} label 列标题文本
+     * @property {string} key 列唯一标识
+     * @property {number} index 列索引
+     * @property {object[]} [data] 列数据
+     * @property {boolean} [isArrayNames] 用于树结构分组,整个groupconfigs里需要唯一
+     */
+
+    class groupHandler {
+        constructor() {
+            this.mSettings = []
+        }
+
+        addConfig(config) {
+            this.mSettings.push(config)
+        }
+
+        getKeyConfig() {
+            return this.mSettings.find(config => config.isArrayNames === true)
+        }
+
+        getOtherConfigs() {
+            return this.mSettings.filter(config => config.isArrayNames !== true)
+        }
+    }
+
+    /**
      * 这是一个sap.ui.table.Table的控制器类，可以把表展示为2D表
      */
     const Table2DController = Object.extend("Unit.Table2DController", {
@@ -202,22 +229,7 @@ sap.ui.define([
      * @returns {string[]} 公式依赖项
      */
     Table2DController.prototype._extractDependencies = function (formula) {
-        function cleanBrackets(str) {
-            str = str.trim();
-            if (str.startsWith('(') && str.endsWith(')')) {
-                // 简单检查是否匹配（防止 "(A).B)" 这种情况）
-                let level = 0;
-                for (let i = 0; i < str.length; i++) {
-                    if (str[i] === '(') level++;
-                    if (str[i] === ')') level--;
-                    if (level === 0 && i < str.length - 1) {
-                        return str;
-                    }
-                }
-                return str.slice(1, -1);
-            }
-            return str;
-        }
+
         let parts = [];
         let currentPart = "";
         let bracketLevel = 0; // 括号层级计数器
@@ -454,9 +466,9 @@ sap.ui.define([
         tableData.forEach((rowData) => {
             this._extraColumnConfig.forEach((ex) => {
                 rowData[ex.key] = {
-                    col: ex.key,
+                    col_key: ex.key,
                     value: ex.data[rowData.row_label.key],
-                    row: rowData.row_label.key,
+                    row_key: rowData.row_label.key,
                     editable: false
                 }
             })
