@@ -365,8 +365,13 @@ sap.ui.define([
 
         deps.forEach(dep => {
             let val
-            val = this.getCellValue(dep)
-            val = val.value
+            if (isFinite(dep)) {
+                val = dep
+            } else {
+                val = this.getCellValue(dep)
+                val = val.value
+            }
+
             if (!val) {
                 val = 0
             }

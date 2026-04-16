@@ -23,7 +23,7 @@ sap.ui.define([
 			this.EventLoop = [];
 			this._debounceList = [];
 			// eslint-disable-next-line fiori-custom/sap-no-global-define
-			window.Debugger = new Debugger({ this: this, visible: false });
+			// window.Debugger = new Debugger({ this: this, visible: false });
 		},
 
 		/**
