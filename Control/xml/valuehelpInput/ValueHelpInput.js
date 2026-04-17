@@ -78,7 +78,11 @@ sap.ui.define([
                 /**
                  * ValueHelp中表上的Column配置
                  */
-                columns: { type: "Control.xml.valuehelpInput.ColumnConfig", multiple: true, bindable: true }
+                columns: { type: "Control.xml.valuehelpInput.ColumnConfig", multiple: true, bindable: true },
+                /**
+                 * ValueHelp中FilterBar上的Filter配置
+                 */
+                filters: { type: "Control.xml.valuehelpInput.FilterConfig", multiple: true, bindable: true },
             }
         },
 
@@ -117,6 +121,10 @@ sap.ui.define([
 
         oProperties.column = this.getColumns().map(column => {
             return column._getColumnConfig();
+        });
+
+        oProperties.filter = this.getFilters().map(filter => {
+            return filter._getFilterConfig();
         });
 
         return oProperties;

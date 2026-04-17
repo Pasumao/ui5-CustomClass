@@ -165,11 +165,12 @@ sap.ui.define([
     ValueHelpDialog.prototype._getTable = function (oTableData, aColumnConfig) {
         return new Table({
             ...oTableData,
-            columns: aColumnConfig.map(({ text, key, autoResizable }) => new Column({
+            columns: aColumnConfig.map(({ text, key, autoResizable, visibleInTable }) => new Column({
                 label: [
                     new Label({ text: text })
                 ],
                 autoResizable: autoResizable || true,
+                visible: visibleInTable,
                 template: [new Text({ text: `{${key}}` })]
             })
             ),
@@ -208,6 +209,17 @@ sap.ui.define([
                                 }
                             });
                             oMultiInput.addValidator(ValueHelpDialog._Validator("range"));
+                            oMultiInput.setTokens(this._oProperties.filter.filter(i => i.key === key).map(f => {
+                                return new sap.m.Token({
+                                    key: f.key,
+                                    text: f.value1
+                                }).data("range", {
+                                    keyField: f.key,
+                                    operation: f.operation,
+                                    value1: f.value1,
+                                    value2: f.value2
+                                });
+                            }))
                             return oMultiInput;
                         })()
                     });
@@ -449,17 +461,12 @@ sap.ui.define([
      * @deprecated
      */
     ValueHelpDialog.open = function (oControl, oProperties) {
-        let oValueHelpDialog = oControl._oValueHelpDialog;
-        if (!oValueHelpDialog) {
-            oValueHelpDialog = new ValueHelpDialog(oControl, oProperties);
-        }
+        const oValueHelpDialog = new ValueHelpDialog(oControl, oProperties);
         oValueHelpDialog.initDialog().then(function () {
-            oValueHelpDialog._oControl.setBusy(false);
-            oControl._oValueHelpDialog = oValueHelpDialog;
-        }).finally(function () {
-            // oValueHelpDialog._oDialog.setTokens(oControl.getTokens())
-            // oValueHelpDialog._oDialog.update();
             oValueHelpDialog.openDialog();
+            if (oProperties.filter) {
+                oValueHelpDialog._oDialog.getFilterBar().fireSearch()
+            }
         });
     };
 
