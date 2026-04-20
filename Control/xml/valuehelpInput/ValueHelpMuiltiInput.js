@@ -223,7 +223,7 @@ sap.ui.define([
             const fGetODatav2 = (aData = [], iSkip = 0) => {
                 return new Promise((resolve, reject) => {
                     oModel.read(path, {
-                        filters: aFilters ?? [],
+                        // filters: aFilters ?? [],
                         urlParameters: {
                             "$skip": iSkip,
                             "$format": "json",
