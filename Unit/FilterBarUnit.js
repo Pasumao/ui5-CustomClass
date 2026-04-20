@@ -484,33 +484,24 @@ sap.ui.define([
     FilterBarUnit.Item_to_Filter = function (item) {
         var sKey = this.getKey(item);
         var itemcontrol = item.getControl();
-        var sType = itemcontrol.getMetadata().getName();
         let filters;
 
-        switch (sType) {
-            case "sap.m.Input":
-                filters = this.Input_to_Filter(sKey, itemcontrol);
-                break;
-            case "sap.m.MultiInput":
-                filters = this.MultiInput_to_Filter(sKey, itemcontrol);
-                break;
-            case "sap.m.DynamicDateRange":
-                filters = this.DDR_to_Filter(sKey, itemcontrol);
-                break;
-            case "sap.m.DateTimePicker":
-                filters = this.DateTimePicker_to_Filter(sKey, itemcontrol);
-                break;
-            case "sap.m.Select":
-                filters = this.Select_to_Filter(sKey, itemcontrol);
-                break;
-            case "sap.m.ComboBox":
-                filters = this.ComboBox_to_Filter(sKey, itemcontrol);
-                break;
-            case "sap.m.SearchField":
-                filters = this.SearchField_to_Filter(sKey, itemcontrol);
-                break;
-            default:
-                break;
+        if (itemcontrol.isA("sap.m.MultiInput")) {
+            filters = this.MultiInput_to_Filter(sKey, itemcontrol);
+        } else if (itemcontrol.isA("sap.m.Input")) {
+            filters = this.Input_to_Filter(sKey, itemcontrol);
+        } else if (itemcontrol.isA("sap.m.DynamicDateRange")) {
+            filters = this.DDR_to_Filter(sKey, itemcontrol);
+        } else if (itemcontrol.isA("sap.m.DateTimePicker")) {
+            filters = this.DateTimePicker_to_Filter(sKey, itemcontrol)
+        } else if (itemcontrol.isA("sap.m.Select")) {
+            filters = this.Select_to_Filter(sKey, itemcontrol);
+        } else if (itemcontrol.isA("sap.m.ComboBox")) {
+            filters = this.ComboBox_to_Filter(sKey, itemcontrol);
+        } else if (itemcontrol.isA("sap.m.SearchField")) {
+            filters = this.SearchField_to_Filter(sKey, itemcontrol);
+        } else {
+            filters = undefined;
         }
         return filters;
     };
