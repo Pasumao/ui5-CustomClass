@@ -413,6 +413,10 @@ sap.ui.define([
         } else {
             const sValue = aTokens[0].data("row")[this._oProperties.key]
             this._oControl.setValue(sValue)
+            this._oControl.fireChange({
+                value: sValue,
+                newValue: sValue
+            });
         }
         this._oDialog.close();
     };

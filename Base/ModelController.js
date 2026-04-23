@@ -150,9 +150,11 @@ sap.ui.define([
                     return data;
                 }
                 const bindList = oModel.bindList(sPath, {}, {}, aFilters);
-                // return bindList.oList;
-                const contexts = bindList.getContexts();
-                return contexts.map((context) => context.getObject());
+                if (aFilters) {
+                    const contexts = bindList.getContexts();
+                    return contexts.map((context) => context.getObject());
+                }
+                return bindList.oList;
                 // return sPath && sPath !== "/" ? oModel.getData()[sPath.slice(1)] : oModel.getData();
             } else if (oModel.isA("sap.ui.model.odata.v2.ODataModel")) {
                 const fGetODatav2 = (aData = [], iSkip = 0) => {
