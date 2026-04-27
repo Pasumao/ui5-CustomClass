@@ -74,6 +74,9 @@ sap.ui.define([
         if (!propr.title) {
             propr.title = propr.key;
         }
+        if (propr.supportRangesOnly) {
+            propr.supportRanges = true;
+        }
         // 检测是否为select_one模式
         if (propr.supportMultiselect === false) {
             if (!propr.table) propr.table = {}
@@ -83,7 +86,7 @@ sap.ui.define([
             propr.maxConditions = 1;
         }
         // 检测是否有range,如果supportRanges是true则初始化range
-        if (propr.supportRanges && !propr.range) {
+        if (propr.supportRanges && propr.range?.length === 0) {
             propr.range = [
                 {
                     label: propr.key,
@@ -120,7 +123,6 @@ sap.ui.define([
 
     ValueHelpDialog.prototype.initDialog = function () {
         return new Promise((resolve, reject) => {
-            const oTableData = this._oProperties.table;
             const aColumnConfig = this._oProperties.column;
 
             this._oDialog = new UI5ValueHelpDialog({
@@ -143,11 +145,11 @@ sap.ui.define([
                 this._setRange(this._oProperties.range);
             }
 
+            this._setTokens();
             if (!this._oProperties.supportRangesOnly) {
-                this._oTable = this._getTable(oTableData, aColumnConfig);
+                this._oTable = this._getTable(aColumnConfig);
 
                 this._oDialog.setTable(this._oTable);
-                this._initTable();
 
                 const oFilterBar = this._getFilterBar(aColumnConfig)
                 this._oDialog.setFilterBar(oFilterBar);
@@ -155,21 +157,20 @@ sap.ui.define([
                 let oData = { tableData: this._oProperties.tableData };
                 this._oDialog.setModel(new sap.ui.model.json.JSONModel(oData));
                 this._oDialog.update();
-                resolve();
-            } else {
-                resolve();
+
             }
+            resolve();
         });
     };
 
-    ValueHelpDialog.prototype._getTable = function (oTableData, aColumnConfig) {
+    ValueHelpDialog.prototype._getTable = function (aColumnConfig) {
         return new Table({
-            ...oTableData,
-            columns: aColumnConfig.map(({ text, key, autoResizable }) => new Column({
+            columns: aColumnConfig.map(({ text, key, autoResizable, visibleInTable }) => new Column({
                 label: [
                     new Label({ text: text })
                 ],
                 autoResizable: autoResizable || true,
+                visible: visibleInTable,
                 template: [new Text({ text: `{${key}}` })]
             })
             ),
@@ -208,6 +209,17 @@ sap.ui.define([
                                 }
                             });
                             oMultiInput.addValidator(ValueHelpDialog._Validator("range"));
+                            oMultiInput.setTokens(this._oProperties.filter?.filter(i => i.key === key)?.map(f => {
+                                return new sap.m.Token({
+                                    key: f.key,
+                                    text: f.value1
+                                }).data("range", {
+                                    keyField: f.key,
+                                    operation: f.operation,
+                                    value1: f.value1,
+                                    value2: f.value2
+                                });
+                            }))
                             return oMultiInput;
                         })()
                     });
@@ -370,7 +382,7 @@ sap.ui.define([
         );
     };
 
-    ValueHelpDialog.prototype._initTable = function () {
+    ValueHelpDialog.prototype._setTokens = function () {
         this._oDialog.setTokens([]);
         if (this._bMultiControl) {
             const aTokens = this._oControl.getTokens()
@@ -401,6 +413,10 @@ sap.ui.define([
         } else {
             const sValue = aTokens[0].data("row")[this._oProperties.key]
             this._oControl.setValue(sValue)
+            this._oControl.fireChange({
+                value: sValue,
+                newValue: sValue
+            });
         }
         this._oDialog.close();
     };
@@ -449,17 +465,12 @@ sap.ui.define([
      * @deprecated
      */
     ValueHelpDialog.open = function (oControl, oProperties) {
-        let oValueHelpDialog = oControl._oValueHelpDialog;
-        if (!oValueHelpDialog) {
-            oValueHelpDialog = new ValueHelpDialog(oControl, oProperties);
-        }
+        const oValueHelpDialog = new ValueHelpDialog(oControl, oProperties);
         oValueHelpDialog.initDialog().then(function () {
-            oValueHelpDialog._oControl.setBusy(false);
-            oControl._oValueHelpDialog = oValueHelpDialog;
-        }).finally(function () {
-            // oValueHelpDialog._oDialog.setTokens(oControl.getTokens())
-            // oValueHelpDialog._oDialog.update();
             oValueHelpDialog.openDialog();
+            if (oProperties.filter) {
+                oValueHelpDialog._oDialog.getFilterBar().fireSearch()
+            }
         });
     };
 

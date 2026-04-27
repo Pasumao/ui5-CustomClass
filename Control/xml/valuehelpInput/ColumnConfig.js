@@ -26,6 +26,9 @@ sap.ui.define([
                  * 作用于FilterBar
                  */
                 hiddenFilter: { type: "boolean", defaultValue: false },
+
+
+                visibleInTable: { type: "boolean", defaultValue: true },
             }
         }
     });
@@ -37,6 +40,7 @@ sap.ui.define([
         oProperties.visibleInFilterBar = this.getVisibleInFilterBar();
         oProperties.autoResizable = this.getAutoResizable();
         oProperties.hiddenFilter = this.getHiddenFilter();
+        oProperties.visibleInTable = this.getVisibleInTable();
 
         return oProperties;
     };
