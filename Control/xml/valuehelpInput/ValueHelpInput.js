@@ -17,6 +17,11 @@ sap.ui.define([
 
                 tableData: { type: "object[]", defaultValue: [] },
 
+                /**
+                 * odatamodel的path但是不要写大括号用纯字符串
+                 *
+                 * @since 1.24
+                 */
                 odataPath: { type: "string", defaultValue: "" },
 
                 showValueHelp: { type: "boolean", defaultValue: true },
