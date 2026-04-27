@@ -380,7 +380,7 @@ sap.ui.define([
             }
 
             const regex = new RegExp(`\\b${dep}\\b`, 'g');
-            executableStr = executableStr.replace(regex, val);
+            executableStr = executableStr.replace(regex, "(" + val + ")");
         });
 
         try {
