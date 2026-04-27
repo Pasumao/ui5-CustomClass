@@ -70,6 +70,7 @@ sap.ui.define([
 		 * valuehelp的调用方法，如果要处理数据可以照着写
 		 * 增加了防抖
 		 * @param {sap.ui.base.Event} oEvent oEvent
+		 * @deprecated
 		 */
 		onMultiInputValueHelpRequest: function (oEvent) {
 			const vhfunction = () => {
