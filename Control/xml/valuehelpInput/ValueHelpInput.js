@@ -15,6 +15,10 @@ sap.ui.define([
 
                 title: { type: "string", defaultValue: "" },
 
+
+                /**
+                 * jsonmodel的数据就指向这里
+                 */
                 tableData: { type: "object[]", defaultValue: [] },
 
                 /**
