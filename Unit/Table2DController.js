@@ -114,7 +114,8 @@ sap.ui.define([
                 aExColumns.forEach(exColumn => {
                     const oColumn = new sap.ui.table.Column({
                         label: new sap.m.Label({ text: exColumn.label }),
-                        template: new sap.m.Label({ text: `{${this.sModelName}>${exColumn.key}/value}` })
+                        template: new sap.m.Label({ text: `{${this.sModelName}>${exColumn.key}/value}` }),
+                        width: "100px"
                     })
                     this.oTable.addColumn(oColumn)
                 })
@@ -125,13 +126,15 @@ sap.ui.define([
                     template: new sap.m.Text({
                         text: `{${this.sModelName}>row_label/label}`
                     }),
-                    visible: !this._bHide
+                    visible: !this._bHide,
+                    width: "100px"
                 })
                 this.oTable.addColumn(firstColumn)
             }
             const oColumn = new sap.ui.table.Column({
                 label: new sap.m.Label({ text: column.label }),
-                template: column.template
+                template: column.template,
+                width: "100px"
             })
             this.oTable.addColumn(oColumn)
         })
@@ -377,7 +380,7 @@ sap.ui.define([
             }
 
             const regex = new RegExp(`\\b${dep}\\b`, 'g');
-            executableStr = executableStr.replace(regex, val);
+            executableStr = executableStr.replace(regex, "(" + val + ")");
         });
 
         try {
