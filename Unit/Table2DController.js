@@ -388,7 +388,7 @@ sap.ui.define([
             if (isNaN(result)) {
                 return 0;
             }
-            return result;
+            return result.toFixed(10);
         } catch (e) {
             console.error(`公式计算失败: ${formulaStr} -> ${executableStr}`, e);
             throw e;
